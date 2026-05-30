@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentStatus } from "@/lib/supabase";
+import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentStatus } from "@/lib/supabase-mock";
 import { isSandboxEnvironment } from "@/lib/environment";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 
