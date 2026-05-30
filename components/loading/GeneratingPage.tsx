@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Zap, Wand2, Star } from "lucide-react";
+import { Sparkles, Zap, Wand2, Star, Camera, CheckCircle2 } from "lucide-react";
 
 interface GeneratingPageProps {
   themeName: string;
   themeIcon: string;
-  packageType: "individual" | "premium" | "completo";
+  packageType: "individual" | "premium" | "completo" | "futebol-familia";
   currentStep: number;
   totalSteps: number;
 }
@@ -57,6 +57,7 @@ const PACKAGE_INFO = {
   individual: { versions: 1, label: "Card Individual" },
   premium: { versions: 5, label: "Pack Premium" },
   completo: { versions: 10, label: "Pack Completo" },
+  "futebol-familia": { versions: 1, label: "Futebol Família" },
 };
 
 export function GeneratingPage({
@@ -196,6 +197,41 @@ export function GeneratingPage({
               </motion.div>
             </div>
           </div>
+
+          {/* Photo quality tips */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="w-full max-w-md mx-auto mb-6"
+          >
+            <div className="bg-[#1E293B]/40 backdrop-blur-sm rounded-xl p-4 border border-[#22C55E]/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Camera className="w-4 h-4 text-[#22C55E]" />
+                <span className="text-[#22C55E] text-xs font-semibold uppercase tracking-wider">
+                  Dica para resultado perfeito
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                <div className="flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E] mt-0.5 shrink-0" />
+                  <span className="text-[#94A3B8] text-xs">Rosto próximo e centralizado</span>
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E] mt-0.5 shrink-0" />
+                  <span className="text-[#94A3B8] text-xs">Boa iluminação frontal</span>
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E] mt-0.5 shrink-0" />
+                  <span className="text-[#94A3B8] text-xs">Expressão natural visível</span>
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E] mt-0.5 shrink-0" />
+                  <span className="text-[#94A3B8] text-xs">Fundo simples sem poluição</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Animated icons */}
           <div className="flex justify-center gap-6">

@@ -7,7 +7,7 @@ Para o projeto funcionar completamente, você precisa configurar as seguintes va
 ```bash
 # Supabase (OBRIGATÓRIO para banco de dados)
 NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_publica_aqui
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sua_chave_publica_aqui
 SUPABASE_SERVICE_ROLE_KEY=sua_chave_service_role_aqui
 
 # Replicate (IA - já configurado)
@@ -34,7 +34,7 @@ O erro que você está vendo acontece porque as variáveis do Supabase não est�
 
 ```
 NEXT_PUBLIC_SUPABASE_URL is undefined
-NEXT_PUBLIC_SUPABASE_ANON_KEY is undefined
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is undefined
 ```
 
 ## ✅ SOLUÇÃO RÁPIDA PARA TESTAR:
@@ -48,7 +48,7 @@ Se você quiser testar o sistema SEM o Supabase por enquanto, posso criar uma ve
 3. Vá em Settings → API
 4. Copie:
    - Project URL → NEXT_PUBLIC_SUPABASE_URL
-   - anon public → NEXT_PUBLIC_SUPABASE_ANON_KEY  
+   - anon public → NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY  
    - service_role → SUPABASE_SERVICE_ROLE_KEY
 5. Execute o SQL em `database/schema.sql` no SQL Editor do Supabase
 

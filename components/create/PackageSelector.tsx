@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Star, Zap, Crown } from "lucide-react";
+import { Check, Star, Zap, Crown, Heart } from "lucide-react";
 import type { PackageType } from "@/types/collectible";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 
@@ -14,6 +14,7 @@ const PACKAGE_ICONS = {
   individual: Zap,
   premium: Star,
   completo: Crown,
+  "futebol-familia": Heart,
 };
 
 const PACKAGE_POPULAR: Partial<Record<PackageType, boolean>> = {

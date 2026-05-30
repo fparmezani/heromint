@@ -1,4 +1,4 @@
-export type PackageType = "individual" | "premium" | "completo";
+export type PackageType = "individual" | "premium" | "completo" | "futebol-familia";
 
 export interface CollectibleFormData {
   theme: string;
@@ -41,5 +41,11 @@ export const PACKAGE_CONFIG: Record<PackageType, { label: string; price: number;
     price: 2990,
     description: "10 versões diferentes",
     versions: 10,
+  },
+  "futebol-familia": {
+    label: "Futebol Família",
+    price: 2490,
+    description: "1 imagem LANDSCAPE com toda a família no campo",
+    versions: 1,
   },
 };

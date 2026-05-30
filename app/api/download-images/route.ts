@@ -2,9 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { isSandboxEnvironment } from "@/lib/environment";
 import JSZip from "jszip";
 
+function sanitizeFilename(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9_-]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "heromint";
+}
+
+function getImageFileInfo(contentType: string | null, imageUrl: string) {
+  if (contentType?.includes("png")) return { contentType: "image/png", extension: "png" };
+  if (contentType?.includes("webp")) return { contentType: "image/webp", extension: "webp" };
+  if (contentType?.includes("gif")) return { contentType: "image/gif", extension: "gif" };
+  if (contentType?.includes("jpeg") || contentType?.includes("jpg")) {
+    return { contentType: "image/jpeg", extension: "jpg" };
+  }
+
+  const extension = imageUrl.match(/\.(png|webp|gif|jpe?g)(?:$|\?)/i)?.[1]?.toLowerCase();
+  if (extension === "png") return { contentType: "image/png", extension };
+  if (extension === "webp") return { contentType: "image/webp", extension };
+  if (extension === "gif") return { contentType: "image/gif", extension };
+  return { contentType: "image/jpeg", extension: "jpg" };
+}
+
+interface DownloadImageData {
+  imageUrl: string;
+  templateUsed?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { collectibleId, imageUrls, themeName, userEmail, packageType } = await request.json();
+    const { collectibleId, imageUrls, themeName, packageType } = await request.json();
 
     if (!collectibleId || !imageUrls || !Array.isArray(imageUrls)) {
       return NextResponse.json(
@@ -24,16 +52,19 @@ export async function POST(request: NextRequest) {
 
     // Baixa todas as imagens
     const imageBuffers = await Promise.all(
-      imageUrls.map(async (imageData: any, index: number) => {
+      imageUrls.map(async (imageData: DownloadImageData, index: number) => {
         try {
-          const response = await fetch(imageData.imageUrl);
+          const sourceUrl = new URL(imageData.imageUrl, request.url).toString();
+          const response = await fetch(sourceUrl);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          const buffer = await response.arrayBuffer();
+          const data = await response.arrayBuffer();
+          const fileInfo = getImageFileInfo(response.headers.get("content-type"), sourceUrl);
           return {
-            buffer: Buffer.from(buffer),
-            filename: `${themeName}_v${index + 1}_${imageData.templateUsed || 'card'}.png`,
+            data,
+            filename: `${sanitizeFilename(themeName)}_v${index + 1}_${sanitizeFilename(imageData.templateUsed || "card")}.${fileInfo.extension}`,
+            contentType: fileInfo.contentType,
             templateUsed: imageData.templateUsed,
           };
         } catch (error) {
@@ -56,11 +87,11 @@ export async function POST(request: NextRequest) {
     // Se for apenas uma imagem, retorna diretamente
     if (validImages.length === 1) {
       const image = validImages[0]!;
-      return new NextResponse(image.buffer, {
+      return new Response(image.data, {
         headers: {
-          'Content-Type': 'image/png',
+          'Content-Type': image.contentType,
           'Content-Disposition': `attachment; filename="${image.filename}"`,
-          'Content-Length': image.buffer.length.toString(),
+          'Content-Length': image.data.byteLength.toString(),
         },
       });
     }
@@ -70,7 +101,7 @@ export async function POST(request: NextRequest) {
     
     validImages.forEach((image) => {
       if (image) {
-        zip.file(image.filename, image.buffer);
+        zip.file(image.filename, image.data);
       }
     });
 
@@ -93,14 +124,14 @@ Visite: https://heromint.com
     zip.file("README.txt", readmeContent);
 
     // Gera o ZIP
-    const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-    const zipFilename = `HeroMint_${themeName}_${collectibleId}.zip`;
+    const zipData = await zip.generateAsync({ type: "arraybuffer" });
+    const zipFilename = `HeroMint_${sanitizeFilename(themeName)}_${sanitizeFilename(collectibleId)}.zip`;
 
-    return new NextResponse(zipBuffer, {
+    return new Response(zipData, {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="${zipFilename}"`,
-        'Content-Length': zipBuffer.length.toString(),
+        'Content-Length': zipData.byteLength.toString(),
       },
     });
 

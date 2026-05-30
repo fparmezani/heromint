@@ -12,6 +12,13 @@ interface DeliveryOptionsProps {
   onDeliveryComplete?: () => void;
 }
 
+function getDownloadExtension(contentType: string, imageCount: number) {
+  if (imageCount > 1) return "zip";
+  if (contentType.includes("webp")) return "webp";
+  if (contentType.includes("png")) return "png";
+  return "jpg";
+}
+
 export function DeliveryOptions({
   collectibleId,
   packageType,
@@ -83,18 +90,19 @@ export function DeliveryOptions({
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `HeroMint_${themeName}_${collectibleId}.${generatedImages.length === 1 ? 'png' : 'zip'}`;
+        a.download = `HeroMint_${themeName}_${collectibleId}.${getDownloadExtension(blob.type, generatedImages.length)}`;
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
         setIsCompleted(true);
         setTimeout(() => {
           onDeliveryComplete?.();
         }, 2000);
       } else {
-        alert("Erro no download");
+        const result = await response.json().catch(() => null);
+        alert("Erro no download: " + (result?.error || "Não foi possível preparar o arquivo."));
       }
     } catch (error) {
       alert("Erro no download: " + error);

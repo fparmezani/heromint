@@ -10,7 +10,7 @@ interface PreviewCardProps {
 
 export function PreviewCard({ imageUrl, isPaid = false }: PreviewCardProps) {
   return (
-    <div className="relative rounded-3xl overflow-hidden border border-[#1E293B] shadow-2xl glow-purple aspect-[2/3] w-full max-w-sm mx-auto">
+    <div className="relative aspect-[2/3] w-full max-w-sm mx-auto">
       <img
         src={imageUrl}
         alt="Card preview"

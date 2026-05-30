@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
 // Cliente para uso no servidor (com service role key)
 export const supabaseAdmin = createClient(
   supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY || supabasePublishableKey
 );
 
 // Tipos do banco de dados
@@ -25,7 +25,7 @@ export interface Order {
   user_id: string;
   collectible_id: string;
   theme_name: string;
-  package_type: 'individual' | 'premium' | 'completo';
+  package_type: 'individual' | 'premium' | 'completo' | 'futebol-familia';
   total_amount: number; // em centavos
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   payment_id?: string; // ID do Asaas
@@ -71,12 +71,17 @@ export async function getUserByEmail(email: string) {
 }
 
 export async function getOrCreateUser(email: string, name?: string) {
+  console.log('🔍 [SUPABASE] Buscando usuário por email:', email);
   let user = await getUserByEmail(email);
-  
+
   if (!user) {
+    console.log('👤 [SUPABASE] Usuário não encontrado, criando novo...');
     user = await createUser({ email, name });
+    console.log('✅ [SUPABASE] Usuário criado:', user.id);
+  } else {
+    console.log('✅ [SUPABASE] Usuário encontrado:', user.id);
   }
-  
+
   return user;
 }
 
@@ -85,11 +90,13 @@ export async function createOrder(orderData: {
   user_id: string;
   collectible_id: string;
   theme_name: string;
-  package_type: 'individual' | 'premium' | 'completo';
+  package_type: 'individual' | 'premium' | 'completo' | 'futebol-familia';
   total_amount: number;
   form_data: Record<string, any>;
   payment_id?: string;
 }) {
+  console.log('📝 [SUPABASE] Criando pedido com dados:', orderData);
+
   const { data, error } = await supabase
     .from('orders')
     .insert([{
@@ -99,18 +106,23 @@ export async function createOrder(orderData: {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ [SUPABASE] Erro ao criar pedido:', error);
+    throw error;
+  }
+
+  console.log('✅ [SUPABASE] Pedido criado com sucesso:', data.id);
   return data;
 }
 
 export async function updateOrderPaymentStatus(
-  orderId: string, 
+  orderId: string,
   status: 'paid' | 'failed' | 'refunded',
   paymentId?: string
 ) {
   const { data, error } = await supabase
     .from('orders')
-    .update({ 
+    .update({
       payment_status: status,
       payment_id: paymentId,
       updated_at: new Date().toISOString()

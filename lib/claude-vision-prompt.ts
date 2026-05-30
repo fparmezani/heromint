@@ -10,11 +10,34 @@ export async function generateCustomizedPrompt(
   const nome = formData.nome || "the person";
 
   const themePrompts: Record<string, string> = {
-    "futebol-2026": `Analyze this photo and create a detailed prompt to transform the person into a premium football card character:
-- Keep their face, expression, and distinctive features EXACTLY the same
-- Describe their current appearance (pose, clothing, facial features, hair, skin tone)
-- Create a detailed description of how to transform them into: professional football player in bright yellow/green Brazilian Seleção jersey, number 10 on chest, stadium background with floodlights, dramatic cinematic lighting, professional sports card quality
-- Make the transformation feel natural while keeping all their facial features identical`,
+    "futebol-2026": `Analyze this photo and create a detailed prompt to transform the uploaded person into a premium football portrait.
+CRITICAL: The person is a ${formData.genero === "Feminino" ? "woman" : formData.genero === "Masculino" ? "man" : "person"} — the output MUST be a ${formData.genero === "Feminino" ? "woman" : formData.genero === "Masculino" ? "man" : "person"}.
+- Preserve the exact same individual from the reference image
+- Preserve apparent age, child/adult proportions, face shape, expression, hairstyle, skin tone, and ALL distinctive features
+- Do not change the person's gender under any circumstances
+- Do not make a child look like an adult professional athlete
+- Describe their current appearance precisely
+- Change only clothing and background into: bright yellow/green Brazilian-inspired football jersey, number 10 on chest, stadium background with floodlights, dramatic cinematic lighting
+- Keep the face and identity perfectly recognizable from the original photo`,
+
+    "futebol-familia": `Analyze this photo and describe this person's FACE and APPEARANCE in EXTREME detail so an AI image generator can recreate them faithfully in a family football photograph.
+
+DESCRIBE EXHAUSTIVELY:
+- Gender and apparent age
+- Face shape (oval, round, square, heart-shaped, long, etc.)
+- Skin tone, complexion, and any skin marks
+- Eye color, eye shape, eyebrow shape and thickness
+- Nose shape and size
+- Mouth shape, smile characteristics, lip fullness
+- Hair color, length, texture, and exact style
+- Any facial hair (beard, mustache, stubble, or clean-shaven)
+- ALL distinctive features (glasses, freckles, moles, scars, dimples, accessories)
+- Build and body type
+- Current expression and demeanor
+
+CRITICAL: The generated image MUST recreate this EXACT person's face — not a generic lookalike. Describe every unique facial feature so precisely that no one else could match this description.`,
+
+
 
     "hero-card": `Analyze this photo and create a detailed prompt to transform them into a dark fantasy warrior:
 - Keep their face and features EXACTLY the same
@@ -75,7 +98,7 @@ export async function generateCustomizedPrompt(
 
   try {
     const response = await client.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-sonnet-20240229",
       max_tokens: 1024,
       system: systemPrompt,
       messages: [
@@ -92,7 +115,25 @@ export async function generateCustomizedPrompt(
             },
             {
               type: "text",
-              text: `Create a detailed, specific prompt for this image transformation. Include details you observe about: pose, lighting, facial features, expression, current clothing, and hair. Then describe exactly how to transform this while KEEPING THE FACE IDENTICAL. Make it visual and detailed for image generation.`,
+              text: `Create an EXTREMELY detailed image generation prompt for this exact person. Your task is to describe this individual so precisely that an AI image generator can recreate their appearance faithfully.
+
+Describe in detail:
+- Exact gender
+- Apparent age range
+- Face shape (oval, round, square, heart-shaped, etc.)
+- Skin tone and complexion
+- Eye color, eye shape, eyebrows
+- Nose shape and size
+- Mouth and smile characteristics
+- Hair color, length, texture, and style
+- Any facial hair (beard, mustache, stubble, or clean-shaven)
+- Distinctive features (moles, freckles, scars, glasses, accessories)
+- Build/body type
+- Expression and demeanor
+
+Then describe how to place this exact person into the requested theme: change ONLY the clothing and background, keeping this same individual's face, body, and identity completely unchanged.`,
+
+
             },
           ],
         },

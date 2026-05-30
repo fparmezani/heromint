@@ -5,7 +5,7 @@ import { generateCustomizedPrompt } from "./claude-vision-prompt";
 export interface GenerateImageInput {
   theme: string;
   formData: Record<string, string>;
-  uploadedImageBase64?: string;
+  uploadedImageBase64?: string | string[];
   versions?: number;
 }
 
@@ -25,26 +25,43 @@ const replicate = new Replicate({
   auth: (process.env.REPLICATE_API_TOKEN ?? "").trim(),
 });
 
+export const MAX_FAMILY_REFERENCE_PHOTOS = 5;
+
 // ── DETAILED STRUCTURED PROMPTS FOR PREMIUM GENERATION ──────────────────────
 function getDetailedPrompt(theme: string, formData: Record<string, string>): string {
   const nome = formData.nome || "Player";
 
   const prompts: Record<string, string> = {
-    "futebol-2026": `Create a PREMIUM VERTICAL COLLECTIBLE FOOTBALL CARD.
+    "futebol-2026": `Create a PREMIUM VERTICAL FOOTBALL PORTRAIT based on the uploaded person's real appearance.
 CRITICAL REQUIREMENTS:
 - Vertical orientation, aspect ratio 2:3 (1024x1536)
-- FILL ENTIRE FRAME: face, neck, shoulders to chest visible, maximum person visibility
-- KEEP FACE EXACTLY THE SAME, facing camera directly, confident expression
+- FILL ENTIRE FRAME with ZERO padding: face, neck, shoulders to chest visible, maximum person visibility, image must bleed to all edges
+- KEEP FACE, AGE, AND IDENTITY EXACTLY THE SAME, facing camera directly, natural expression
+- The person is a ${formData.genero === "Feminino" ? "woman" : formData.genero === "Masculino" ? "man" : "person"} — preserve this gender perfectly
 - JERSEY: Bright yellow and green Brazilian Seleção style (no real Nike/CBF logos), NUMBER 10 on chest
-- BACKGROUND: Dark green stadium atmosphere with golden light flares, subtle particles, professional collectible-card aesthetic
-- CARD STYLE: Clean edges, no border, glossy premium finish, professional sports card photography
+- BACKGROUND: Dark green stadium atmosphere with golden light flares, subtle particles
+- ABSOLUTELY NO decorative elements: NO golden bars, NO silver bars, NO ornamental strips at top or bottom, NO card UI elements, NO number banners, NO shiny borders, NO metallic frames, NO edge decorations of any kind
+- NO borders, NO frames, NO card borders, NO padding, NO margin — the person and background must reach every edge of the canvas with nothing extra
 - LIGHTING: Dramatic cinematic lighting with golden highlights and green glow
 - EFFECTS: Sparkles, lens flares, subtle smoke, rim light on edges
 - DEPTH: Strong depth of field effect
-- QUALITY: Photorealistic, high contrast, glossy sports card finish
-- AVOID: Real logos, distorted face, text errors, extra fingers, low resolution, borders, frames`,
+- QUALITY: Photorealistic, high contrast, glossy finish
+- AVOID: Real logos, distorted face, text errors, extra fingers, low resolution, any border, frame, bar, strip, or edge decoration`,
 
-    "futebol-panini": `Create a premium collectible football sticker card inspired by classic Panini tournament albums. Use the uploaded image as the exact face identity of the player. Preserve facial features, hairstyle, beard, skin tone and expression perfectly. Show a front-facing professional football player portrait from chest up, wearing a bright yellow and green Brazil-inspired football jersey with number 10. Background with vibrant turquoise/teal color (#00B4A6) and large oversized green rounded numbers "26" behind the player. Add a circular Brazilian flag badge on the right side and vertical "BRASIL" text. Clean modern aesthetic without information bars at bottom - let the turquoise background show. Remove all Panini branding, FIFA branding, trademarks and official tournament logos. Ultra realistic face, studio lighting, premium glossy sticker finish, collectible card aesthetic, centered composition, 1024x1536 vertical format, sharp focus, print-quality details. Clean edges, no border, avoid borders and frames.`,
+
+
+    "futebol-panini": `Create a premium collectible football sticker card inspired by classic Panini tournament albums. Use the uploaded image as the exact face identity of the person. Preserve age, facial features, hairstyle, skin tone and expression perfectly. If the uploaded person is a child, keep them as a child and do not make them an adult professional athlete. Show a front-facing football card portrait from chest up, wearing a bright yellow and green Brazil-inspired football jersey with number 10. Background with vibrant turquoise/teal color (#00B4A6) and large oversized green rounded numbers "26" behind the person. Add a circular Brazilian flag badge on the right side and vertical "BRASIL" text. Clean modern aesthetic without information bars at bottom - let the turquoise background show. Remove all Panini branding, FIFA branding, trademarks and official tournament logos. Ultra realistic face, studio lighting, premium glossy sticker finish, collectible card aesthetic, centered composition, 1024x1536 vertical format, sharp focus, print-quality details. Clean edges, no border, avoid borders and frames.`,
+
+    "futebol-familia": `Create an EPIC LANDSCAPE FAMILY FOOTBALL SCENE on a lush green football pitch.
+CRITICAL REQUIREMENTS:
+- LANDSCAPE orientation, aspect ratio 16:9 (1792x1024)
+- The entire ${formData.nomeFamilia || "family"} is gathered together on the grass field
+- Everyone is wearing matching bright yellow and green Brazilian football jerseys
+- Stadium atmosphere with blue sky, green grass, stadium floodlights in background
+- Warm golden hour lighting, joyful family atmosphere, celebratory mood
+- Photorealistic, cinematic quality, high contrast
+- NO borders, NO frames, NO decorative elements
+- Fill the entire frame — grass at bottom, sky above, family in center`,
 
     "hero-card": `Create a PREMIUM DARK FANTASY COLLECTIBLE CARD.
 CRITICAL REQUIREMENTS:
@@ -176,6 +193,31 @@ CRITICAL REQUIREMENTS:
   return prompts[theme] ?? `Create a premium collectible card portrait of ${nome}. Photorealistic quality, professional card aesthetic.`;
 }
 
+function getAgeFromFormData(formData: Record<string, string>): number | null {
+  const explicitAge = Number(formData.idade);
+  if (Number.isFinite(explicitAge) && explicitAge > 0) {
+    return explicitAge;
+  }
+
+  if (!formData.dataNascimento) {
+    return null;
+  }
+
+  const birthDate = new Date(formData.dataNascimento);
+  if (Number.isNaN(birthDate.getTime())) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age;
+}
+
 // ── PROMPT VARIATIONS FOR MULTIPLE GENERATIONS ──────────────────────────────
 function getPromptVariation(basePrompt: string, variationIndex: number, theme: string): string {
   // Different variations for different themes
@@ -281,9 +323,21 @@ async function generateWithFluxSchnell(input: GenerateImageInput, customPrompt?:
   return { imageUrl, promptUsed: prompt, isMock: false };
 }
 
-// ── FLUX KONTEXT PRO: Edits the real photo, preserves face ───────────────────
+// ── FLUX KONTEXT PRO: Photo editing with minimal creative prompt ──────────────
 async function generateWithKontext(input: GenerateImageInput, customPrompt?: string): Promise<GenerateImageResult> {
-  const prompt = customPrompt || getDetailedPrompt(input.theme, input.formData);
+  const theme = input.theme;
+  const gender = input.formData.genero === "Feminino" ? "woman" : input.formData.genero === "Masculino" ? "man" : "person";
+
+  // Minimal prompt — let the input_image dominate completely
+  const prompt = theme === "futebol-2026"
+    ? `Apply a bright yellow and green Brazilian football jersey with number 10 to the ${gender} in this photo. Change the background to a dark green stadium with golden lights. Keep the exact same face, hair, skin tone, expression, and AGE from the original photo. Same person, same identity, same age — if the person is a child, keep them as a child. Zero changes to face.
+
+POSE ADJUSTMENT: If the person is not facing directly forward, adjust the pose to front-facing — shoulders squared to camera, head straight, looking directly at lens. Do NOT change the face, age, or identity — only adjust the body angle to be front-facing.`
+    : theme === "futebol-panini"
+    ? `Apply a bright yellow and green Brazil football jersey with number 10 to the ${gender} in this photo. Change background to turquoise. Keep the exact same face, hair, skin tone, expression, and AGE. Same person, same age — if the person is a child, keep them as a child.
+
+POSE ADJUSTMENT: Adjust the pose to front-facing — shoulders squared to camera, head straight, looking directly at lens. Do NOT change the face, age, or identity — only adjust the body angle.`
+    : `Transform the ${gender} in this photo into the requested theme style. Keep the exact same face, identity, and AGE. Only change clothing and background.`;
 
   const output = await replicate.run(
     "black-forest-labs/flux-kontext-pro",
@@ -291,10 +345,11 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
       input: {
         prompt,
         input_image: input.uploadedImageBase64,
+        aspect_ratio: "match_input_image",
         output_format: "jpg",
         output_quality: 95,
         safety_tolerance: 2,
-        // No aspect_ratio — let FLUX generate full image without crop
+        prompt_upsampling: false,
       },
     }
   );
@@ -304,8 +359,8 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
 }
 
 // ── FLUX 1.1 PRO: High quality generation from prompt (no photo) ─────────────
-async function generateWithFluxPro(input: GenerateImageInput): Promise<GenerateImageResult> {
-  const prompt = getDetailedPrompt(input.theme, input.formData);
+async function generateWithFluxPro(input: GenerateImageInput, customPrompt?: string): Promise<GenerateImageResult> {
+  const prompt = customPrompt || getDetailedPrompt(input.theme, input.formData);
 
   const output = await replicate.run(
     "black-forest-labs/flux-1.1-pro",
@@ -324,6 +379,82 @@ async function generateWithFluxPro(input: GenerateImageInput): Promise<GenerateI
   return { imageUrl, promptUsed: prompt, isMock: false };
 }
 
+// ── GENERATE FAMILY IMAGE: Multi-person image with identity preservation ────
+export interface GenerateFamilyImageInput {
+  inputImages: string[]; // base64 images
+  theme: string;
+  background: string;
+  outfit: string;
+  formData: Record<string, string>;
+}
+
+export async function generateFamilyImage(
+  input: GenerateFamilyImageInput
+): Promise<GenerateImageResult> {
+  const { inputImages, background, outfit } = input;
+
+  // Validation
+  if (!inputImages || inputImages.length === 0) {
+    throw new Error("At least one reference image is required");
+  }
+  if (inputImages.length > MAX_FAMILY_REFERENCE_PHOTOS) {
+    throw new Error(`Maximum ${MAX_FAMILY_REFERENCE_PHOTOS} reference images allowed`);
+  }
+
+  console.log(`👨‍👩‍👧‍👦 Generating family image with ${inputImages.length} reference photos...`);
+
+  const prompt = `COPY EXACT FACES: Transfer each individual face from reference image exactly as they appear.
+
+CRITICAL FACE PRESERVATION:
+- Reference shows ${inputImages.length} different people - preserve each one EXACTLY
+- Do NOT generate new faces, use ONLY the faces shown in reference
+- Each person's face, hair, age, skin tone must be IDENTICAL to reference
+- Preserve glasses, facial hair, expressions, eye color exactly
+- Do NOT mix features between people
+- Do NOT age anyone up or down
+- Do NOT change gender presentation
+- Use the input photos for identity only. Do NOT copy the original pose, hand gesture, body position, clothing, or background
+- Remove thumbs-up gestures, crossed arms, raised hands, props, food, drinks, and event backgrounds from the references
+
+SCENE CHANGES ONLY:
+- Clothing: ${outfit}
+- Use generic Brazil-inspired jerseys only: no Nike logo, no CBF crest, no official branding
+- Background: ${background}
+- Arrangement: keep exactly ${inputImages.length} people, using one person from each input photo, standing close together in a sober official team-photo pose
+- Family interaction: adults and children naturally close together with arms around shoulders or backs, like an affectionate family portrait
+- Hands: relaxed at the sides or naturally around family members, never making thumbs-up gestures
+- Framing: waist-up landscape portrait with everyone comfortably visible and facing the camera
+- Keep all faces exactly as shown in reference image
+
+PROFESSIONAL LIGHTING AND IMAGE FINISH:
+- Premium sports campaign photography with polished editorial color grading
+- Soft flattering key light on every face, gentle fill light, and subtle rim light around hair and shoulders
+- Balanced exposure with natural skin tones and realistic skin texture
+- Controlled stadium floodlights: bright but never blown out, harsh, or distracting
+- Cinematic contrast, clean shadows, crisp facial details, and subtle background depth of field
+- Vibrant but natural yellow and green jersey colors
+- Avoid flat lighting, plastic-looking skin, excessive HDR, oversaturation, and heavy artificial glow`;
+
+  console.log("🎨 Sending separate family references to google/nano-banana-2...");
+
+  const output = await replicate.run(
+    "google/nano-banana-2",
+    {
+      input: {
+        prompt,
+        image_input: inputImages,
+        aspect_ratio: "16:9",
+        resolution: "2K",
+        output_format: "jpg",
+      },
+    }
+  );
+
+  const imageUrl = Array.isArray(output) ? String(output[0]) : String(output);
+  console.log("✅ Family image generated with google/nano-banana-2");
+  return { imageUrl, promptUsed: prompt, isMock: false };
+}
+
 // ── MOCK FALLBACK ─────────────────────────────────────────────────────────────
 // SVG data URIs with base64 encoding for better browser compatibility
 const MOCK_IMAGES: Record<string, string> = {
@@ -338,6 +469,7 @@ const MOCK_IMAGES: Record<string, string> = {
   "pet-star":            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MTInIGhlaWdodD0nNzY4Jz48cmVjdCBmaWxsPScjNDMxNDA3JyB3aWR0aD0nNTEyJyBoZWlnaHQ9Jzc2OCcvPjx0ZXh0IHg9JzI1NicgeT0nMzg0JyBmb250LXNpemU9JzQ4JyBmaWxsPScjRkNEMzREJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJyBmb250LXdlaWdodD0nYm9sZCc+UEVUIFNUQVI8L3RleHQ+PC9zdmc+",
   "battle-card":         "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MTInIGhlaWdodD0nNzY4Jz48cmVjdCBmaWxsPScjN0YxRDFEJyB3aWR0aD0nNTEyJyBoZWlnaHQ9Jzc2OCcvPjx0ZXh0IHg9JzI1NicgeT0nMzg0JyBmb250LXNpemU9JzQ4JyBmaWxsPScjRjk3MzE2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJyBmb250LXdlaWdodD0nYm9sZCc+QkFUVExFIENBUkQ8L3RleHQ+PC9zdmc+",
   "avatar-poster":       "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MTInIGhlaWdodD0nNzY4Jz48cmVjdCBmaWxsPScjMEYxNzJBJyB3aWR0aD0nNTEyJyBoZWlnaHQ9Jzc2OCcvPjx0ZXh0IHg9JzI1NicgeT0nMzg0JyBmb250LXNpemU9JzQ4JyBmaWxsPScjOEI1Q0Y2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJyBmb250LXdlaWdodD0nYm9sZCc+QVZBVEFSMPC90ZXh0Pjwvc3ZnPg==",
+  "futebol-familia":     "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4OTYnIGhlaWdodD0nNTA0Jz48cmVjdCBmaWxsPScjMDY0RTNCJyB3aWR0aD0nODk2JyBoZWlnaHQ9JzUwNCcvPjx0ZXh0IHg9JzQ0OCcgeT0nMjUyJyBmb250LXNpemU9JzQ4JyBmaWxsPScjRkJCRjI0JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJyBmb250LXdlaWdodD0nYm9sZCc+RkFNw41MSUEgRlVURUJPTDwvdGV4dD48L3N2Zz4=",
 };
 
 // ── MULTIPLE IMAGE GENERATION WITH TEMPLATE DISTRIBUTION ────────────────────
@@ -349,11 +481,72 @@ export async function generateMultipleCollectibleImages(
   
   const results: GenerateImageResult[] = [];
   
+  // Normalize photos to array
+  const photos = input.uploadedImageBase64
+    ? Array.isArray(input.uploadedImageBase64)
+      ? input.uploadedImageBase64
+      : [input.uploadedImageBase64]
+    : [];
+  const photoCount = photos.length;
+
+  if (input.theme === "futebol-familia" && photoCount === 0) {
+    throw new Error("Family portrait requires one reference photo per person");
+  }
+
+  // ── SPECIAL: Futebol Família — single landscape image with multiple people ──
+  if (input.theme === "futebol-familia" && photoCount > 0) {
+    console.log(`👨‍👩‍👧‍👦 Generating family football portrait with ${photoCount} photos...`);
+    try {
+      // Validation
+      if (photoCount > MAX_FAMILY_REFERENCE_PHOTOS) {
+        throw new Error(`Maximum ${MAX_FAMILY_REFERENCE_PHOTOS} photos allowed for family portrait`);
+      }
+
+      // Use the multi-image model with each family member as a separate reference.
+      const familyResult = await generateFamilyImage({
+        inputImages: photos,
+        theme: "futebol-familia",
+        background: "Night football stadium with controlled floodlights, green field, softly blurred crowd in stands, cinematic depth of field, realistic premium sports campaign atmosphere",
+        outfit: "All wearing matching generic Brazil-inspired yellow soccer jerseys with green details and number 10 on the front, without official logos or branding",
+        formData: input.formData,
+      });
+
+      familyResult.templateUsed = "futebol-familia";
+      results.push(familyResult);
+      console.log(`✅ Family portrait generated successfully`);
+
+      return { images: results, totalGenerated: results.length };
+    } catch (err) {
+      console.error(`⚠️ Family portrait generation failed:`, err);
+      // Retry once with reinforced prompt
+      try {
+        console.log("🔄 Retrying with reinforced prompt...");
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const familyResult = await generateFamilyImage({
+          inputImages: photos,
+          theme: "futebol-familia",
+          background: "Night football stadium with controlled floodlights, green field, softly blurred crowd, cinematic depth of field",
+          outfit: "All wearing matching generic Brazil-inspired yellow soccer jerseys with green details and number 10, without official logos or branding, front-facing, close to camera",
+          formData: input.formData,
+        });
+        familyResult.templateUsed = "futebol-familia";
+        results.push(familyResult);
+        console.log(`✅ Family portrait generated successfully on retry`);
+        return { images: results, totalGenerated: results.length };
+      } catch (retryErr) {
+        console.error(`⚠️ Retry also failed:`, retryErr);
+        throw retryErr;
+      }
+    }
+  }
+
   // Special handling for football themes - distribute between templates
   const shouldDistributeFootballTemplates = (input.theme === "futebol-2026" || input.theme === "futebol-panini") && versions >= 5;
   
   for (let i = 0; i < versions; i++) {
     console.log(`📸 Generating image ${i + 1}/${versions}...`);
+    const hasPhotoForThisSlot = i < photoCount;
+    const currentPhoto = hasPhotoForThisSlot ? photos[i] : undefined;
     
     try {
       let prompt: string;
@@ -371,9 +564,9 @@ export async function generateMultipleCollectibleImages(
       }
       
       // Generate base prompt
-      if (input.uploadedImageBase64) {
+      if (currentPhoto) {
         try {
-          prompt = await generateCustomizedPrompt(input.uploadedImageBase64, currentTheme, input.formData);
+          prompt = await generateCustomizedPrompt(currentPhoto, currentTheme, input.formData);
           console.log(`✅ Custom prompt generated for image ${i + 1}`);
         } catch (anthropicErr) {
           console.error(`❌ Error generating custom prompt for image ${i + 1}, using default.`, anthropicErr);
@@ -383,22 +576,24 @@ export async function generateMultipleCollectibleImages(
         prompt = getDetailedPrompt(currentTheme, input.formData);
       }
       
-      // Apply variation if not the first image
-      if (i > 0) {
+      // Apply variation for slots without a specific photo (random/fallback)
+      if (!currentPhoto) {
         prompt = getPromptVariation(prompt, i, currentTheme);
-        console.log(`🎨 Applied variation ${i} to prompt for theme ${currentTheme}`);
+        console.log(`🎨 Applied random variation ${i} to fill slot ${i + 1}`);
       }
       
       // Generate image
       let result: GenerateImageResult;
-      if (input.uploadedImageBase64) {
+      if (currentPhoto) {
+        // Use flux-kontext-pro for photo editing
         result = await generateWithKontext({ 
           ...input, 
           theme: input.theme, 
-          formData: input.formData, 
-          uploadedImageBase64: input.uploadedImageBase64 
+          formData: input.formData,
+          uploadedImageBase64: currentPhoto
         }, prompt);
       } else {
+        // Generate random image without photo reference (fills remaining slots)
         result = await generateWithFluxSchnell({ 
           ...input, 
           theme: input.theme, 
@@ -441,17 +636,22 @@ export async function generateMultipleCollectibleImages(
 export async function generateCollectibleImage(
   input: GenerateImageInput
 ): Promise<GenerateImageResult> {
-  // PREVIEW: FLUX Schnell with detailed prompts
-  // After payment: pode usar FLUX Kontext Pro para edição de foto
-
   console.log(`🚀 Starting image generation for theme: ${input.theme}...`);
 
+  console.log('🔄 [CONFIG] Usando Replicate');
+
   let prompt: string;
+  const singlePhoto = input.uploadedImageBase64
+    ? Array.isArray(input.uploadedImageBase64)
+      ? input.uploadedImageBase64[0]
+      : input.uploadedImageBase64
+    : undefined;
+
   try {
     // Se houver foto, gera prompt personalizado com Anthropic
-    if (input.uploadedImageBase64) {
+    if (singlePhoto) {
       try {
-        prompt = await generateCustomizedPrompt(input.uploadedImageBase64, input.theme, input.formData);
+        prompt = await generateCustomizedPrompt(singlePhoto, input.theme, input.formData);
         console.log("✅ Prompt personalizado gerado pela Anthropic");
       } catch (anthropicErr) {
         console.error("❌ Erro ao gerar prompt com Anthropic, usando prompt padrão.", anthropicErr);
@@ -461,19 +661,17 @@ export async function generateCollectibleImage(
       prompt = getDetailedPrompt(input.theme, input.formData);
     }
 
-    // Gera imagem usando o prompt (personalizado ou padrão)
-    // Se houver foto, usa o modelo que aceita input_image
     let result: GenerateImageResult;
-    if (input.uploadedImageBase64) {
-      result = await generateWithKontext({ ...input, theme: input.theme, formData: input.formData, uploadedImageBase64: input.uploadedImageBase64 });
-      // Sobrescreve o promptUsed para mostrar o prompt real usado
+
+    if (singlePhoto) {
+      result = await generateWithKontext({ ...input, theme: input.theme, formData: input.formData, uploadedImageBase64: singlePhoto });
       result.promptUsed = prompt;
     } else {
-      // Sem foto, usa o modelo normal
       result = await generateWithFluxSchnell({ ...input, theme: input.theme, formData: input.formData });
       result.promptUsed = prompt;
     }
-    console.log(`✅ Image generated successfully`);
+
+    console.log('✅ Image generated successfully with replicate');
     return result;
   } catch (err) {
     console.error(`⚠️ Geração de imagem falhou:`, err);

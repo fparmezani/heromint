@@ -1,6 +1,7 @@
 export type ThemeId =
   | "futebol-2026"
   | "futebol-panini"
+  | "futebol-familia"
   | "hero-card"
   | "profissional-premium"
   | "reino-medieval"

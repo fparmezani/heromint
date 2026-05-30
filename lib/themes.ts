@@ -11,6 +11,7 @@ export const themes: Theme[] = [
     bgColor: "#064E3B",
     fields: [
       { key: "nome", label: "Nome do Jogador", type: "text", placeholder: "Seu nome completo", required: true },
+      { key: "genero", label: "Gênero", type: "select", options: ["Feminino", "Masculino"], required: true },
       { key: "pais", label: "País", type: "text", placeholder: "Brasil", required: true },
       { key: "time", label: "Time", type: "text", placeholder: "Nome do seu time", required: true },
       { key: "dataNascimento", label: "Data de Nascimento", type: "date", required: true },
@@ -29,12 +30,28 @@ export const themes: Theme[] = [
     bgColor: "#00B4A6",
     fields: [
       { key: "nome", label: "Nome do Jogador", type: "text", placeholder: "Seu nome completo", required: true },
+      { key: "genero", label: "Gênero", type: "select", options: ["Feminino", "Masculino"], required: true },
       { key: "pais", label: "País", type: "text", placeholder: "Brasil", required: true },
       { key: "time", label: "Time", type: "text", placeholder: "Nome do seu time", required: true },
       { key: "dataNascimento", label: "Data de Nascimento", type: "date", required: true },
       { key: "altura", label: "Altura (cm)", type: "number", placeholder: "175", required: true },
       { key: "peso", label: "Peso (kg)", type: "number", placeholder: "70", required: true },
       { key: "posicao", label: "Posição", type: "select", options: ["Goleiro", "Lateral", "Zagueiro", "Volante", "Meia", "Atacante", "Centroavante"], required: true },
+    ],
+  },
+  {
+    id: "futebol-familia",
+    name: "Futebol Família",
+    description: "Reúna toda a família em uma imagem épica LANDSCAPE no campo de futebol. Envie fotos de cada membro.",
+    badge: "Novo",
+    icon: "👨‍👩‍👧‍👦",
+    gradient: "from-green-500 to-yellow-400",
+    bgColor: "#047857",
+    fields: [
+      { key: "nomeFamilia", label: "Nome da Família", type: "text", placeholder: "Família Silva", required: true },
+      { key: "quantidadeMembros", label: "Quantidade de Membros", type: "number", placeholder: "4", required: true },
+      { key: "pais", label: "País", type: "text", placeholder: "Brasil", required: true },
+      { key: "time", label: "Time do Coração", type: "text", placeholder: "Seleção Brasileira", required: true },
     ],
   },
   {

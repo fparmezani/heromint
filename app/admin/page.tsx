@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { BarChart3, CreditCard, Users, TrendingUp } from "lucide-react";
+import { BarChart3, CreditCard, Users, TrendingUp, Settings } from "lucide-react";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Admin — HeroMint",
@@ -38,9 +39,19 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#020617] pt-8 pb-16 px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-impact text-4xl text-white tracking-wide">ADMIN DASHBOARD</h1>
-          <p className="text-[#94A3B8] text-sm mt-1">HeroMint — Visão geral da plataforma</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="font-impact text-4xl text-white tracking-wide">ADMIN DASHBOARD</h1>
+            <p className="text-[#94A3B8] text-sm mt-1">HeroMint — Visão geral da plataforma</p>
+          </div>
+          
+          <Link 
+            href="/admin/configuracoes"
+            className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            Configurações
+          </Link>
         </div>
 
         {/* Stats */}

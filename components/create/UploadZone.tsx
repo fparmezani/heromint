@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PhotoGuide } from "./PhotoGuide";
 
 interface UploadZoneProps {
   value?: string;
@@ -108,9 +109,9 @@ export function UploadZone({ value, onChange }: UploadZoneProps) {
                   <span className="text-[#2563EB] underline">clique para selecionar</span>
                 </p>
                 <p className="text-[#94A3B8] text-sm">PNG, JPG ou WEBP • Máx. 10MB</p>
-                <p className="text-[#94A3B8] text-xs mt-1">Dica: Use uma foto com rosto bem iluminado</p>
               </div>
             </label>
+            <PhotoGuide />
           </motion.div>
         )}
       </AnimatePresence>

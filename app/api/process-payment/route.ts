@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentStatus } from "@/lib/supabase-mock";
+import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentStatus } from "@/lib/supabase";
 import { isSandboxEnvironment } from "@/lib/environment";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 [PAYMENT] Iniciando processamento de pagamento...');
+    
+    const requestBody = await request.json();
+    console.log('📦 [PAYMENT] Dados recebidos:', JSON.stringify(requestBody, null, 2));
+    
     const { 
       userEmail,
       userName,
@@ -14,27 +19,45 @@ export async function POST(request: NextRequest) {
       formData,
       generatedImages,
       isDevMode = false
-    } = await request.json();
+    } = requestBody;
+
+    console.log('✅ [PAYMENT] Dados extraídos:', {
+      userEmail,
+      userName,
+      collectibleId,
+      themeName,
+      packageType,
+      hasFormData: !!formData,
+      hasGeneratedImages: !!generatedImages,
+      isDevMode
+    });
 
     if (!userEmail || !collectibleId || !themeName || !packageType || !formData) {
+      console.log('❌ [PAYMENT] Dados obrigatórios faltando');
       return NextResponse.json(
         { error: "Dados obrigatórios faltando" },
         { status: 400 }
       );
     }
 
+    console.log('👤 [PAYMENT] Buscando ou criando usuário...');
     // Busca ou cria usuário
     const user = await getOrCreateUser(userEmail, userName);
+    console.log('✅ [PAYMENT] Usuário obtido:', { id: user.id, email: user.email });
     
+    console.log('💰 [PAYMENT] Calculando valor total...');
     // Calcula valor total
     const packageConfig = PACKAGE_CONFIG[packageType as keyof typeof PACKAGE_CONFIG];
     if (!packageConfig) {
+      console.log('❌ [PAYMENT] Tipo de pacote inválido:', packageType);
       return NextResponse.json(
         { error: "Tipo de pacote inválido" },
         { status: 400 }
       );
     }
+    console.log('✅ [PAYMENT] Pacote configurado:', { type: packageType, price: packageConfig.price });
 
+    console.log('📝 [PAYMENT] Criando pedido no banco...');
     // Cria pedido no banco
     const order = await createOrder({
       user_id: user.id,
@@ -44,13 +67,21 @@ export async function POST(request: NextRequest) {
       total_amount: packageConfig.price,
       form_data: formData,
     });
+    console.log('✅ [PAYMENT] Pedido criado:', { id: order.id, status: order.payment_status });
 
+    console.log('🔧 [PAYMENT] Verificando modo de desenvolvimento...');
     // Em modo desenvolvimento ou sandbox, marca como pago automaticamente
     if (isDevMode || isSandboxEnvironment()) {
+      console.log('🧪 [PAYMENT] Modo desenvolvimento ativo - processando automaticamente');
+      
+      console.log('💳 [PAYMENT] Atualizando status do pagamento...');
       await updateOrderPaymentStatus(order.id, 'paid', `dev_payment_${Date.now()}`);
+      console.log('✅ [PAYMENT] Status atualizado para "paid"');
       
       // Salva imagens geradas se fornecidas
       if (generatedImages && generatedImages.length > 0) {
+        console.log('🖼️ [PAYMENT] Salvando imagens geradas...', { count: generatedImages.length });
+        
         const imageRecords = generatedImages.map((img: any, index: number) => ({
           order_id: order.id,
           image_url: img.imageUrl,
@@ -58,9 +89,14 @@ export async function POST(request: NextRequest) {
           file_name: `${themeName}_v${index + 1}_${img.templateUsed || 'card'}.png`,
         }));
         
+        console.log('📸 [PAYMENT] Registros de imagem preparados:', imageRecords);
         await saveGeneratedImages(imageRecords);
+        console.log('✅ [PAYMENT] Imagens salvas no banco');
+      } else {
+        console.log('⚠️ [PAYMENT] Nenhuma imagem para salvar');
       }
 
+      console.log('🎉 [PAYMENT] Processamento concluído com sucesso');
       return NextResponse.json({
         success: true,
         message: "Pedido processado com sucesso (modo desenvolvimento)",
@@ -73,6 +109,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log('🏭 [PAYMENT] Modo produção - preparando para pagamento real');
     // Em produção, retorna dados para pagamento real
     return NextResponse.json({
       success: true,
@@ -85,10 +122,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-  } catch (error) {
-    console.error("Erro ao processar pagamento:", error);
+  } catch (error: any) {
+    console.error("❌ [PAYMENT] ERRO CRÍTICO:", error);
+    console.error("❌ [PAYMENT] Stack trace:", error.stack);
+    console.error("❌ [PAYMENT] Tipo do erro:", typeof error);
+    console.error("❌ [PAYMENT] Mensagem:", error.message);
+    
     return NextResponse.json(
-      { error: "Erro interno do servidor" },
+      { 
+        error: "Erro interno do servidor",
+        details: error.message,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }

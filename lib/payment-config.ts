@@ -5,6 +5,7 @@ export const PAYMENT_LINKS: Record<PackageType, string> = {
   individual: "https://www.asaas.com/c/60vtiurluc6gmh3w",
   premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
   completo: "https://www.asaas.com/c/completo-10-images", // TODO: Criar link para 10 imagens
+  "futebol-familia": "",
 };
 
 // Função para obter o link de pagamento

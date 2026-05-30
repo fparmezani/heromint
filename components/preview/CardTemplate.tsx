@@ -11,6 +11,8 @@ interface CardTemplateProps {
   showWatermark?: boolean;
 }
 
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Crect fill='%231E293B' width='512' height='768'/%3E%3Ctext x='256' y='384' font-size='32' fill='%2394A3B8' text-anchor='middle' dominant-baseline='middle'%3EAguardando imagem...%3C/text%3E%3C/svg%3E";
+
 // Deterministic stat based on string + seed (stable across renders)
 function stat(str: string, seed: number, min = 70, max = 99): number {
   let h = seed * 2654435761;
@@ -99,234 +101,22 @@ function Corners({ color }: { color: string }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function FutebolCard({
   photoUrl,
-  f,
 }: {
   photoUrl: string;
-  f: Record<string, string>;
 }) {
-  const flag = countryFlag(f.pais);
-  const code = countryCode(f.pais);
-  const pos = posCode(f.posicao);
-
   return (
-    <div
+    <img
+      src={photoUrl}
+      alt=""
       style={{
-        position: "relative",
         width: "100%",
         height: "100%",
-        fontFamily: "Impact, Anton, 'Arial Narrow', sans-serif",
-        overflow: "hidden",
-        background: "linear-gradient(160deg, #0f5c1a 0%, #0a3d10 100%)",
+        objectFit: "cover",
+        objectPosition: "top",
+        display: "block",
+        borderRadius: 0,
       }}
-    >
-      {/* Subtle inner vignette */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse at 50% 50%, rgba(15,92,26,0.3) 0%, rgba(0,0,0,0.4) 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Gold border */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 3,
-          borderRadius: 18,
-          border: "2.5px solid #c9a227",
-          boxShadow:
-            "inset 0 0 18px rgba(201,162,39,0.25), 0 0 10px rgba(201,162,39,0.1)",
-          zIndex: 20,
-          pointerEvents: "none",
-        }}
-      />
-      <Corners color="#f5d060" />
-
-      {/* BIG "2026" vertical background text */}
-      <div
-        style={{
-          position: "absolute",
-          left: -5,
-          top: "3%",
-          zIndex: 5,
-          lineHeight: 0.85,
-          color: "rgba(0,50,0,0.55)",
-          fontWeight: 900,
-          fontSize: "clamp(80px, 30vw, 120px)",
-          letterSpacing: -8,
-          userSelect: "none",
-          fontFamily: "Impact, Anton, 'Arial Narrow', sans-serif",
-          writingMode: "horizontal-tb",
-        }}
-      >
-        2
-        <br />0
-        <br />2
-        <br />6
-      </div>
-
-      {/* TOP RIGHT: Copa 2026 badge */}
-      <div
-        style={{
-          position: "absolute",
-          top: 12,
-          right: 12,
-          zIndex: 15,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            background: "rgba(0,0,0,0.4)",
-            border: "1.5px solid rgba(245,208,96,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 18,
-          }}
-        >
-          🏆
-        </div>
-        <span
-          style={{
-            color: "rgba(255,255,255,0.9)",
-            fontWeight: 700,
-            fontSize: 6,
-            letterSpacing: 1,
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
-          COPA
-        </span>
-        <span
-          style={{
-            color: "#f5d060",
-            fontWeight: 700,
-            fontSize: 7,
-            letterSpacing: 1,
-            fontFamily: "Inter, sans-serif",
-          }}
-        >
-          2026
-        </span>
-      </div>
-
-      {/* Photo — full width, 100% height */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 10,
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      >
-        {photoUrl && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={photoUrl}
-              alt=""
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "top",
-                display: "block",
-              }}
-            />
-        {/* Gradient fade at bottom */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(to top, #0a3d10 0%, rgba(10,61,16,0.4) 45%, transparent 70%)",
-          }}
-        />
-
-        {/* POS top-left inside photo */}
-        <div style={{ position: "absolute", top: 10, left: 10 }}>
-          <span
-            style={{
-              color: "#f5d060",
-              fontWeight: 900,
-              fontSize: 10,
-              letterSpacing: 2,
-              fontFamily: "Inter, sans-serif",
-              textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-            }}
-          >
-            {pos}
-          </span>
-        </div>
-
-        {/* Flag + country code — right side of photo */}
-        <div
-          style={{
-            position: "absolute",
-            right: 10,
-            top: "50%",
-            transform: "translateY(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 3,
-          }}
-        >
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.55)",
-              border: "2px solid rgba(245,208,96,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 17,
-            }}
-          >
-            {flag}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            {code.split("").map((c, i) => (
-              <span
-                key={i}
-                style={{
-                  color: "white",
-                  fontWeight: 900,
-                  fontSize: 11,
-                  lineHeight: 1.1,
-                  fontFamily: "Inter, sans-serif",
-                  textShadow: "0 2px 6px rgba(0,0,0,0.9)",
-                }}
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-        </div>
-          </>
-        )}
-      </div>
-
-    </div>
+    />
   );
 }
 
@@ -340,14 +130,20 @@ function FutebolPaniniCard({
   photoUrl: string;
   f: Record<string, string>;
 }) {
-  const flag = countryFlag(f.pais);
+  const flag = countryFlag(f?.pais || "");
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "";
+      return date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return "";
+    }
   };
   const formatHeight = (height: string) => {
     if (!height) return "";
@@ -487,7 +283,7 @@ function FutebolPaniniCard({
             textShadow: "0 2px 4px rgba(0,0,0,0.3)",
           }}
         >
-          {f.nome || "JOGADOR"}
+          {f?.nome || "JOGADOR"}
         </div>
 
         {/* Player stats row */}
@@ -503,13 +299,13 @@ function FutebolPaniniCard({
             marginBottom: 4,
           }}
         >
-          {f.dataNascimento && <span>{formatDate(f.dataNascimento)}</span>}
-          {f.altura && <span>| {formatHeight(f.altura)}</span>}
-          {f.peso && <span>| {f.peso} kg</span>}
+          {f?.dataNascimento && <span>{formatDate(f.dataNascimento)}</span>}
+          {f?.altura && <span>| {formatHeight(f.altura)}</span>}
+          {f?.peso && <span>| {f.peso} kg</span>}
         </div>
 
         {/* Team */}
-        {f.time && (
+        {f?.time && (
           <div
             style={{
               color: "rgba(255,255,255,0.9)",
@@ -520,7 +316,7 @@ function FutebolPaniniCard({
               textTransform: "uppercase",
             }}
           >
-            {f.time}
+            {f?.time}
           </div>
         )}
       </div>
@@ -2680,17 +2476,22 @@ export function CardTemplate({
   themeId,
   photoUrl,
   generatedImageUrl,
-  formData: f,
+  formData: f = {},
   showWatermark = true,
 }: CardTemplateProps) {
-  const effectivePhoto = generatedImageUrl ?? photoUrl;
+  const effectivePhoto = generatedImageUrl || photoUrl || PLACEHOLDER_IMAGE;
   
   // Remove marca d'água em ambiente sandbox para testes
   const shouldShowWatermark = showWatermark && !shouldBypassWatermark();
 
   const inner = ({
-    "futebol-2026": <FutebolCard photoUrl={effectivePhoto} f={f} />,
+    "futebol-2026": <FutebolCard photoUrl={effectivePhoto} />,
     "futebol-panini": <FutebolPaniniCard photoUrl={effectivePhoto} f={f} />,
+    "futebol-familia": (
+      <div className="w-full">
+        <img src={effectivePhoto} alt="Família no futebol" className="w-full h-auto rounded-xl" />
+      </div>
+    ),
     "hero-card": <HeroCard photoUrl={effectivePhoto} f={f} />,
     "profissional-premium": <ProfissionalCard photoUrl={effectivePhoto} f={f} />,
     "reino-medieval": <ReinoMedievalCard photoUrl={effectivePhoto} f={f} />,
@@ -2701,16 +2502,18 @@ export function CardTemplate({
     "battle-card": <BattleCard photoUrl={effectivePhoto} f={f} />,
     "avatar-poster": <AvatarPosterCard photoUrl={effectivePhoto} f={f} />,
   } as Record<string, React.ReactNode>)[themeId] ?? (
-    <FutebolCard photoUrl={effectivePhoto} f={f} />
+    <FutebolCard photoUrl={effectivePhoto} />
   );
+
+  const isLandscape = themeId === "futebol-familia";
 
   return (
     <div
       style={{
         position: "relative",
-        aspectRatio: "2/3",
+        aspectRatio: isLandscape ? "16/9" : "2/3",
         width: "100%",
-        maxWidth: 300,
+        maxWidth: isLandscape ? 896 : 300,
         margin: "0 auto",
         borderRadius: 22,
         overflow: "hidden",

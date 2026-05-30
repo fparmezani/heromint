@@ -43,7 +43,7 @@ export function useImageGeneration() {
   const generateImages = useCallback(async (
     theme: string,
     formData: Record<string, string>,
-    photoBase64: string,
+    photoBase64: string | string[],
     packageType: PackageType
   ): Promise<GenerationResult> => {
     setState({
@@ -62,15 +62,14 @@ export function useImageGeneration() {
         }));
       }, 2000);
 
+      const body = Array.isArray(photoBase64)
+        ? { theme, formData, photosBase64: photoBase64, packageType }
+        : { theme, formData, photoBase64, packageType };
+
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          theme,
-          formData,
-          photoBase64,
-          packageType,
-        }),
+        body: JSON.stringify(body),
       });
 
       clearInterval(stepInterval);

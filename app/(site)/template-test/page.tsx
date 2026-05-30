@@ -5,6 +5,8 @@ import { CardTemplate } from "@/components/preview/CardTemplate";
 import { Wand2, Loader2 } from "lucide-react";
 
 const THEMES_LIST = [
+  { id: "futebol-panini", name: "Futebol Panini" },
+  { id: "futebol-familia", name: "Futebol Família" },
   { id: "futebol-2026", name: "Futebol 2026" },
   { id: "hero-card", name: "Hero Card" },
   { id: "profissional-premium", name: "Profissional Premium" },
@@ -20,21 +22,23 @@ const THEMES_LIST = [
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:rgb(100,150,200);stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:rgb(50,100,150);stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='768' fill='url(%23grad)'/%3E%3Ctext x='256' y='384' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3ETemplate Test%3C/text%3E%3C/svg%3E";
 
 export default function TemplateTestPage() {
-  const [selectedTheme, setSelectedTheme] = useState("futebol-2026");
+  const [selectedTheme, setSelectedTheme] = useState("futebol-panini");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [genero, setGenero] = useState("Masculino");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [promptUsed, setPromptUsed] = useState("");
 
   const mockFormData = {
-    nome: "FERNANDO",
+    nome: "BELINHA",
+    genero,
     pais: "Brasil",
     posicao: "Atacante",
     numero: "10",
     time: "Seleção",
-    dataNascimento: "1976-08-04",
-    altura: "1.82",
-    peso: "95",
+    dataNascimento: "2020-08-04",
+    altura: "1.10",
+    peso: "35",
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,17 +68,18 @@ export default function TemplateTestPage() {
           theme: selectedTheme,
           formData: mockFormData,
           photoBase64: photoUrl,
-          packageType: "premium",
+          packageType: "individual",
         }),
       });
 
       console.log("📡 Response status:", response.status);
       const data = await response.json();
-      console.log("✓ Data recebida:", { isMock: data.isMock, hasImageUrl: !!data.imageUrl, hasPrompt: !!data.promptUsed });
+      const firstImage = data.images?.[0];
+      console.log("✓ Data recebida:", { total: data.totalGenerated, isMock: firstImage?.isMock, hasImageUrl: !!firstImage?.imageUrl });
 
-      if (data.imageUrl) {
-        setGeneratedImageUrl(data.imageUrl);
-        setPromptUsed(data.promptUsed || "");
+      if (firstImage?.imageUrl) {
+        setGeneratedImageUrl(firstImage.imageUrl);
+        setPromptUsed(firstImage.promptUsed || "");
         console.log("✅ Imagem e prompt carregados");
       } else {
         alert("Erro ao gerar: " + (data.error || "desconhecido"));
@@ -113,6 +118,18 @@ export default function TemplateTestPage() {
           ))}
         </div>
 
+        {/* Family theme warning */}
+        {selectedTheme === "futebol-familia" && (
+          <div className="mb-6 max-w-2xl p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10">
+            <p className="text-yellow-200 text-sm font-medium">⚠️ Aviso técnico — Futebol Família</p>
+            <p className="text-yellow-100/80 text-xs mt-1">
+              A IA text-to-image cria pessoas baseadas em descrição de texto. Os rostos gerados
+              <strong> não serão idênticos</strong> aos das fotos enviadas — apenas aproximados.
+              Para preservar o rosto exato de cada pessoa, recomendamos gerar cards individuais (Futebol 2026 / Panini).
+            </p>
+          </div>
+        )}
+
         {/* Upload section */}
         <div className="mb-8 max-w-md">
           <label className="block text-white font-medium mb-3">Envie sua foto:</label>
@@ -130,6 +147,20 @@ export default function TemplateTestPage() {
               {photoUrl && <p className="text-green-400 text-sm mt-2">✓ Foto enviada</p>}
             </label>
           </div>
+        </div>
+
+        {/* Gender selector */}
+        <div className="mb-8 max-w-md">
+          <label className="block text-white font-medium mb-3">Gênero:</label>
+          <select
+            value={genero}
+            onChange={(e) => setGenero(e.target.value)}
+            disabled={isGenerating}
+            className="w-full px-4 py-3 bg-[#1E293B] border border-[#334155] rounded-lg text-white focus:border-[#2563EB] focus:outline-none"
+          >
+            <option value="Masculino">Homem</option>
+            <option value="Feminino">Mulher</option>
+          </select>
         </div>
 
         {/* Generate button */}

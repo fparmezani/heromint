@@ -19,7 +19,8 @@ interface PreviewData {
   themeIcon: string;
   packageType: PackageType;
   formData: Record<string, string>;
-  photoUrl: string;
+  photoUrl?: string; // legacy single photo
+  photoUrls?: string[]; // new multiple photos
   generatedImageUrl?: string; // from Replicate (may not exist if mock) - backward compatibility
   generatedImages?: Array<{ imageUrl: string; promptUsed: string; isMock: boolean; templateUsed?: string }>; // multiple images
   totalGenerated?: number;
@@ -267,10 +268,10 @@ export default function PreviewPage() {
               </div>
             )}
 
-            <div className="w-full max-w-sm aspect-[9/11] bg-black rounded-2xl overflow-hidden shadow-2xl">
+            <div className="w-full max-w-sm aspect-[9/11]">
               <CardTemplate
                 themeId={currentTemplate}
-                photoUrl={data.photoUrl}
+                photoUrl={data.photoUrls?.[0] ?? data.photoUrl ?? ""}
                 generatedImageUrl={currentImage.isMock ? undefined : currentImage.imageUrl}
                 formData={data.formData}
                 showWatermark={true}
