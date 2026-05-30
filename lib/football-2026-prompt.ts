@@ -49,6 +49,9 @@ NON-NEGOTIABLE VISUAL RULES:
 - Use the supplied club crest only as a small chest badge and in the bottom-left information area.
 - The image MUST fill the entire rectangular canvas edge-to-edge.
 - ABSOLUTELY NO outer border, NO gold frame, NO metallic frame, NO rounded card outline, NO beveled edges, NO ornamental corners and NO margin.
+- Use the first reference image for FACIAL IDENTITY ONLY. Do NOT copy its body pose, arm position or hand gestures.
+- REMOVE any thumbs-up gesture completely. The output MUST NOT show a raised thumb, visible hand or visible forearm.
+- Frame the player from chest up with both arms and hands outside the visible canvas, in a sober official player portrait.
 
 FORM DATA:
 - NOME: ${formData.nome || "JOGADOR"}

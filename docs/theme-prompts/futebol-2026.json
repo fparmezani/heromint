@@ -55,9 +55,10 @@
       "style": "bold white vertical letters on the right side"
     },
     "central_character_area": {
-      "position": "centered upper body portrait, sober professional player pose, face clearly visible",
+      "position": "centered chest-up portrait, sober official player pose, shoulders squared to camera, face clearly visible, arms and hands outside the frame",
       "lighting": "cinematic key light, rim light matching the theme palette, premium product-render finish",
       "identity_rule": "preserve exact facial characteristics from the uploaded person image",
+      "pose_rule": "Use the uploaded photo for facial identity only. Do not preserve the original body pose or hand gestures. Remove thumbs-up gestures completely. Keep both hands and forearms outside the visible frame.",
       "jersey": "bright yellow Brazil-inspired football jersey with green collar and green sleeve details, number 10 on the chest, no brand logo; apply the supplied {{TIME}} club crest accurately as a small chest badge only"
     },
     "bottom_panel": {
@@ -120,6 +121,13 @@
     "gold outline around the canvas",
     "club uniform",
     "club jersey colors",
+    "thumbs-up gesture",
+    "thumb up",
+    "joinha",
+    "raised thumb",
+    "visible hands",
+    "visible forearms",
+    "copied pose from reference photo",
     "multiple cards",
     "background card stack",
     "podium",
