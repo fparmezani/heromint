@@ -1,6 +1,8 @@
 
 import Replicate from "replicate";
 import { generateCustomizedPrompt } from "./claude-vision-prompt";
+import { buildFootball2026Prompt, getClubCrestDataUri } from "./football-2026-prompt";
+import { buildFootballFamilyPrompt } from "./football-family-prompt";
 
 export interface GenerateImageInput {
   theme: string;
@@ -193,6 +195,12 @@ CRITICAL REQUIREMENTS:
   return prompts[theme] ?? `Create a premium collectible card portrait of ${nome}. Photorealistic quality, professional card aesthetic.`;
 }
 
+function getBasePrompt(theme: string, formData: Record<string, string>): string {
+  return theme === "futebol-2026"
+    ? buildFootball2026Prompt(formData)
+    : getDetailedPrompt(theme, formData);
+}
+
 function getAgeFromFormData(formData: Record<string, string>): number | null {
   const explicitAge = Number(formData.idade);
   if (Number.isFinite(explicitAge) && explicitAge > 0) {
@@ -304,7 +312,7 @@ function getPromptVariation(basePrompt: string, variationIndex: number, theme: s
 
 // ── FLUX SCHNELL: Generate image from detailed prompt ──────────────────────
 async function generateWithFluxSchnell(input: GenerateImageInput, customPrompt?: string): Promise<GenerateImageResult> {
-  const prompt = customPrompt || getDetailedPrompt(input.theme, input.formData);
+  const prompt = customPrompt || getBasePrompt(input.theme, input.formData);
 
   console.log(`🎨 FLUX Schnell generating image for theme: ${input.theme}...`);
   const output = await replicate.run(
@@ -328,12 +336,39 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
   const theme = input.theme;
   const gender = input.formData.genero === "Feminino" ? "woman" : input.formData.genero === "Masculino" ? "man" : "person";
 
-  // Minimal prompt — let the input_image dominate completely
-  const prompt = theme === "futebol-2026"
-    ? `Apply a bright yellow and green Brazilian football jersey with number 10 to the ${gender} in this photo. Change the background to a dark green stadium with golden lights. Keep the exact same face, hair, skin tone, expression, and AGE from the original photo. Same person, same identity, same age — if the person is a child, keep them as a child. Zero changes to face.
+  if (theme === "futebol-2026") {
+    const clubCrest = getClubCrestDataUri(input.formData.time);
+    const personPhoto = Array.isArray(input.uploadedImageBase64)
+      ? input.uploadedImageBase64[0]
+      : input.uploadedImageBase64;
 
-POSE ADJUSTMENT: If the person is not facing directly forward, adjust the pose to front-facing — shoulders squared to camera, head straight, looking directly at lens. Do NOT change the face, age, or identity — only adjust the body angle to be front-facing.`
-    : theme === "futebol-panini"
+    if (!personPhoto) {
+      throw new Error("Futebol 2026 requires a person reference photo");
+    }
+    if (!clubCrest) {
+      throw new Error(`Club crest not found for team: ${input.formData.time || "not informed"}`);
+    }
+
+    const prompt = buildFootball2026Prompt(input.formData);
+    const output = await replicate.run(
+      "google/nano-banana-2",
+      {
+        input: {
+          prompt,
+          image_input: [personPhoto, clubCrest],
+          aspect_ratio: "2:3",
+          resolution: "2K",
+          output_format: "jpg",
+        },
+      }
+    );
+
+    const imageUrl = Array.isArray(output) ? String(output[0]) : String(output);
+    return { imageUrl, promptUsed: prompt, isMock: false };
+  }
+
+  // Minimal prompt - let the input_image dominate completely
+  const prompt = theme === "futebol-panini"
     ? `Apply a bright yellow and green Brazil football jersey with number 10 to the ${gender} in this photo. Change background to turquoise. Keep the exact same face, hair, skin tone, expression, and AGE. Same person, same age — if the person is a child, keep them as a child.
 
 POSE ADJUSTMENT: Adjust the pose to front-facing — shoulders squared to camera, head straight, looking directly at lens. Do NOT change the face, age, or identity — only adjust the body angle.`
@@ -360,7 +395,7 @@ POSE ADJUSTMENT: Adjust the pose to front-facing — shoulders squared to camera
 
 // ── FLUX 1.1 PRO: High quality generation from prompt (no photo) ─────────────
 async function generateWithFluxPro(input: GenerateImageInput, customPrompt?: string): Promise<GenerateImageResult> {
-  const prompt = customPrompt || getDetailedPrompt(input.theme, input.formData);
+  const prompt = customPrompt || getBasePrompt(input.theme, input.formData);
 
   const output = await replicate.run(
     "black-forest-labs/flux-1.1-pro",
@@ -403,37 +438,7 @@ export async function generateFamilyImage(
 
   console.log(`👨‍👩‍👧‍👦 Generating family image with ${inputImages.length} reference photos...`);
 
-  const prompt = `COPY EXACT FACES: Transfer each individual face from reference image exactly as they appear.
-
-CRITICAL FACE PRESERVATION:
-- Reference shows ${inputImages.length} different people - preserve each one EXACTLY
-- Do NOT generate new faces, use ONLY the faces shown in reference
-- Each person's face, hair, age, skin tone must be IDENTICAL to reference
-- Preserve glasses, facial hair, expressions, eye color exactly
-- Do NOT mix features between people
-- Do NOT age anyone up or down
-- Do NOT change gender presentation
-- Use the input photos for identity only. Do NOT copy the original pose, hand gesture, body position, clothing, or background
-- Remove thumbs-up gestures, crossed arms, raised hands, props, food, drinks, and event backgrounds from the references
-
-SCENE CHANGES ONLY:
-- Clothing: ${outfit}
-- Use generic Brazil-inspired jerseys only: no Nike logo, no CBF crest, no official branding
-- Background: ${background}
-- Arrangement: keep exactly ${inputImages.length} people, using one person from each input photo, standing close together in a sober official team-photo pose
-- Family interaction: adults and children naturally close together with arms around shoulders or backs, like an affectionate family portrait
-- Hands: relaxed at the sides or naturally around family members, never making thumbs-up gestures
-- Framing: waist-up landscape portrait with everyone comfortably visible and facing the camera
-- Keep all faces exactly as shown in reference image
-
-PROFESSIONAL LIGHTING AND IMAGE FINISH:
-- Premium sports campaign photography with polished editorial color grading
-- Soft flattering key light on every face, gentle fill light, and subtle rim light around hair and shoulders
-- Balanced exposure with natural skin tones and realistic skin texture
-- Controlled stadium floodlights: bright but never blown out, harsh, or distracting
-- Cinematic contrast, clean shadows, crisp facial details, and subtle background depth of field
-- Vibrant but natural yellow and green jersey colors
-- Avoid flat lighting, plastic-looking skin, excessive HDR, oversaturation, and heavy artificial glow`;
+  const prompt = buildFootballFamilyPrompt(input.formData, inputImages.length, background, outfit);
 
   console.log("🎨 Sending separate family references to google/nano-banana-2...");
 
@@ -443,7 +448,7 @@ PROFESSIONAL LIGHTING AND IMAGE FINISH:
       input: {
         prompt,
         image_input: inputImages,
-        aspect_ratio: "16:9",
+        aspect_ratio: "2:3",
         resolution: "2K",
         output_format: "jpg",
       },
@@ -541,12 +546,12 @@ export async function generateMultipleCollectibleImages(
   }
 
   // Special handling for football themes - distribute between templates
-  const shouldDistributeFootballTemplates = (input.theme === "futebol-2026" || input.theme === "futebol-panini") && versions >= 5;
+  const shouldDistributeFootballTemplates = input.theme === "futebol-panini" && versions >= 5;
   
   for (let i = 0; i < versions; i++) {
     console.log(`📸 Generating image ${i + 1}/${versions}...`);
-    const hasPhotoForThisSlot = i < photoCount;
-    const currentPhoto = hasPhotoForThisSlot ? photos[i] : undefined;
+    const shouldReuseFootballReference = input.theme === "futebol-2026" && photoCount > 0;
+    const currentPhoto = photos[i] ?? (shouldReuseFootballReference ? photos[0] : undefined);
     
     try {
       let prompt: string;
@@ -564,16 +569,18 @@ export async function generateMultipleCollectibleImages(
       }
       
       // Generate base prompt
-      if (currentPhoto) {
+      if (currentTheme === "futebol-2026") {
+        prompt = buildFootball2026Prompt(input.formData);
+      } else if (currentPhoto) {
         try {
           prompt = await generateCustomizedPrompt(currentPhoto, currentTheme, input.formData);
           console.log(`✅ Custom prompt generated for image ${i + 1}`);
         } catch (anthropicErr) {
           console.error(`❌ Error generating custom prompt for image ${i + 1}, using default.`, anthropicErr);
-          prompt = getDetailedPrompt(currentTheme, input.formData);
+          prompt = getBasePrompt(currentTheme, input.formData);
         }
       } else {
-        prompt = getDetailedPrompt(currentTheme, input.formData);
+        prompt = getBasePrompt(currentTheme, input.formData);
       }
       
       // Apply variation for slots without a specific photo (random/fallback)
@@ -616,7 +623,7 @@ export async function generateMultipleCollectibleImages(
       console.error(`⚠️ Failed to generate image ${i + 1}:`, err);
       
       // Add fallback mock image
-      const fallbackPrompt = getDetailedPrompt(input.theme, input.formData);
+      const fallbackPrompt = getBasePrompt(input.theme, input.formData);
       results.push({
         imageUrl: MOCK_IMAGES[input.theme] ?? MOCK_IMAGES["hero-card"],
         promptUsed: fallbackPrompt,
@@ -655,10 +662,10 @@ export async function generateCollectibleImage(
         console.log("✅ Prompt personalizado gerado pela Anthropic");
       } catch (anthropicErr) {
         console.error("❌ Erro ao gerar prompt com Anthropic, usando prompt padrão.", anthropicErr);
-        prompt = getDetailedPrompt(input.theme, input.formData);
+        prompt = getBasePrompt(input.theme, input.formData);
       }
     } else {
-      prompt = getDetailedPrompt(input.theme, input.formData);
+      prompt = getBasePrompt(input.theme, input.formData);
     }
 
     let result: GenerateImageResult;
@@ -676,7 +683,7 @@ export async function generateCollectibleImage(
   } catch (err) {
     console.error(`⚠️ Geração de imagem falhou:`, err);
     // Fallback para mock SVG se tudo falhar
-    prompt = getDetailedPrompt(input.theme, input.formData);
+    prompt = getBasePrompt(input.theme, input.formData);
     console.log(`📦 Using mock fallback`);
     return {
       imageUrl: MOCK_IMAGES[input.theme] ?? MOCK_IMAGES["hero-card"],

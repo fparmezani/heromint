@@ -4,6 +4,7 @@ import {
   MAX_FAMILY_REFERENCE_PHOTOS,
 } from "@/lib/image-generation";
 import { persistGeneratedImage } from "@/lib/generated-image-storage";
+import { hasClubCrest } from "@/lib/football-2026-prompt";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 
@@ -54,6 +55,21 @@ export async function POST(request: NextRequest) {
           { error: `Envie exatamente uma foto para cada membro da família (${familySize} fotos).` },
           { status: 400 }
         );
+      }
+    }
+
+    if (theme === "futebol-2026") {
+      const playerPhotos = Array.isArray(uploadedPhotos)
+        ? uploadedPhotos
+        : uploadedPhotos
+          ? [uploadedPhotos]
+          : [];
+
+      if (playerPhotos.length === 0) {
+        return NextResponse.json({ error: "Envie uma foto do jogador." }, { status: 400 });
+      }
+      if (!hasClubCrest(formData.time)) {
+        return NextResponse.json({ error: "Selecione um time com escudo disponível." }, { status: 400 });
       }
     }
 

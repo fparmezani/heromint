@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getThemeById } from "@/lib/themes";
+import { notFound, redirect } from "next/navigation";
+import { getThemeById, isThemeAvailable } from "@/lib/themes";
 import { MultiStepForm } from "@/components/create/MultiStepForm";
 
 interface Props {
@@ -23,6 +23,9 @@ export default async function CriarPage({ params }: Props) {
 
   if (!theme) {
     notFound();
+  }
+  if (!isThemeAvailable(themeId)) {
+    redirect("/temas");
   }
 
   return (

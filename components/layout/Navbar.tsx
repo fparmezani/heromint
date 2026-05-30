@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, Sparkles, Zap } from "lucide-react";
+import { Menu, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
-  { label: "Como Funciona", href: "#como-funciona" },
-  { label: "Coleções", href: "#colecoes" },
-  { label: "Preços", href: "#precos" },
-  { label: "Depoimentos", href: "#depoimentos" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Como Funciona", href: "/#como-funciona" },
+  { label: "Colecao Futebol", href: "/#colecoes" },
+  { label: "Temas", href: "/temas" },
 ];
 
 export function Navbar() {
@@ -22,9 +21,14 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <Image
+              src="/heromint-logo-cards.png"
+              alt="HeroMint"
+              width={64}
+              height={64}
+              className="h-12 w-12 md:h-16 md:w-16 object-contain group-hover:scale-105 transition-transform"
+              priority
+            />
             <div className="flex flex-col">
               <span className="font-impact text-xl tracking-wider text-white leading-none">HEROMINT</span>
               <span className="text-[10px] text-[#94A3B8] leading-none tracking-widest uppercase">Forje sua versão épica.</span>
@@ -51,7 +55,7 @@ export function Navbar() {
             </Link>
             <Link href="/temas" className="btn-primary px-5 text-sm h-10 rounded-xl gap-1.5">
               <Zap className="w-4 h-4" />
-              Criar Agora
+              Criar Card de Futebol
             </Link>
           </div>
 
@@ -93,7 +97,7 @@ export function Navbar() {
                 </Link>
                 <Link href="/temas" className="btn-primary w-full text-sm h-12 rounded-xl" onClick={() => setMobileOpen(false)}>
                   <Zap className="w-4 h-4" />
-                  Criar Agora
+                  Criar Card de Futebol
                 </Link>
               </div>
             </div>

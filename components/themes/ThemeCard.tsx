@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock3 } from "lucide-react";
 import type { Theme } from "@/types/theme";
 
 const BADGE_STYLES: Record<string, string> = {
@@ -15,23 +15,24 @@ const BADGE_STYLES: Record<string, string> = {
 interface ThemeCardProps {
   theme: Theme;
   index?: number;
+  available?: boolean;
 }
 
-export function ThemeCard({ theme, index = 0 }: ThemeCardProps) {
+export function ThemeCard({ theme, index = 0, available = true }: ThemeCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.06 }}
     >
-      <div className="group relative bg-[#0F172A] border border-[#1E293B] rounded-3xl overflow-hidden card-hover flex flex-col h-full">
+      <div className={`group relative bg-[#0F172A] border border-[#1E293B] rounded-3xl overflow-hidden flex flex-col h-full ${available ? "card-hover" : "opacity-70"}`}>
         {/* Preview visual */}
         <div
           className={`h-40 bg-gradient-to-br ${theme.gradient} flex items-center justify-center relative overflow-hidden`}
           style={{ backgroundColor: theme.bgColor }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 to-transparent" />
-          <div className="relative z-10 text-7xl group-hover:scale-110 transition-transform duration-300">
+          <div className={`relative z-10 text-7xl transition-transform duration-300 ${available ? "group-hover:scale-110" : "grayscale"}`}>
             {theme.icon}
           </div>
           {/* Badge */}
@@ -66,13 +67,20 @@ export function ThemeCard({ theme, index = 0 }: ThemeCardProps) {
 
           {/* CTA */}
           <div className="mt-auto pt-3">
-            <Link
-              href={`/criar/${theme.id}`}
-              className="btn-primary w-full text-sm h-12 rounded-xl text-center"
-            >
-              Criar Agora
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
+            {available ? (
+              <Link
+                href={`/criar/${theme.id}`}
+                className="btn-primary w-full text-sm h-12 rounded-xl text-center"
+              >
+                Criar Agora
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
+            ) : (
+              <div className="w-full h-12 rounded-xl border border-[#334155] bg-[#1E293B]/70 text-[#94A3B8] text-sm font-bold flex items-center justify-center gap-2">
+                <Clock3 className="w-4 h-4" />
+                EM BREVE
+              </div>
+            )}
           </div>
         </div>
       </div>

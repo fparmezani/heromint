@@ -1,0 +1,111 @@
+{
+  "theme": "football_family_pack",
+  "card_type": "premium family football collectible",
+  "universe": "HeroMint Family Collection",
+  "main_goal": "Transform an entire family into a legendary football family collectible card, preserving all faces and family relationships.",
+  "form_placeholders": {
+    "family_name": "{{NOME_FAMILIA}}",
+    "country": "{{PAIS}}",
+    "favorite_team": "{{TIME}}",
+    "member_count": "{{QUANTIDADE_MEMBROS}}"
+  },
+  "format": {
+    "orientation": "vertical",
+    "aspect_ratio": "2:3",
+    "resolution": "1024x1536"
+  },
+  "visual_identity": {
+    "primary_colors": ["#FFDF00", "#009C3B", "#002776"],
+    "style": "premium football family collectible",
+    "atmosphere": "celebration, pride, unity, happiness"
+  },
+  "scene": {
+    "location": "professional football stadium",
+    "lighting": "cinematic stadium lights",
+    "crowd": "softly blurred crowd in background",
+    "focus": "family members"
+  },
+  "family_composition": {
+    "description": "all {{QUANTIDADE_MEMBROS}} family members standing together with arms around each other",
+    "preserve_faces": true,
+    "preserve_age_relationships": true,
+    "preserve_gender": true,
+    "preserve_family_structure": true
+  },
+  "uniform": {
+    "description": "matching football jerseys in yellow, green and blue",
+    "number": "10",
+    "logos": "fictional only",
+    "no_real_teams": true
+  },
+  "top_section": {
+    "top_left": {
+      "text": "FAMILY 2026"
+    },
+    "top_right": {
+      "text": "LEGENDS COLLECTION"
+    },
+    "family_badge": {
+      "description": "fictional premium family football crest"
+    }
+  },
+  "side_identifier": {
+    "text": "UNITED",
+    "orientation": "vertical"
+  },
+  "bottom_panel": {
+    "position": "lower third of the card",
+    "shape": "dark navy premium information panel with gold trim",
+    "family_name": {
+      "text": "{{NOME_FAMILIA}}",
+      "style": "large uppercase white bold font"
+    },
+    "family_stats": {
+      "text": "LOVE 100 | UNITY 100 | MEMORIES INFINITE",
+      "style": "gold medium font"
+    },
+    "family_motto": {
+      "text": "Together we play. Together we win.",
+      "style": "italic gold text"
+    },
+    "league": {
+      "text": "FAMILY LEGENDS"
+    }
+  },
+  "bottom_left_badge": {
+    "description": "fictional football family crest featuring shield, crown and star"
+  },
+  "bottom_right_icon": {
+    "description": "gold legendary family star"
+  },
+  "visual_effects": {
+    "premium_finish": true,
+    "gold_accents": true,
+    "stadium_glow": true,
+    "cinematic_lighting": true,
+    "high_detail_faces": true,
+    "professional_photography": true
+  },
+  "negative_prompt": [
+    "individual player card",
+    "single person",
+    "cropped family members",
+    "deformed faces",
+    "extra people",
+    "missing people",
+    "real football club logos",
+    "fifa logo",
+    "nike logo",
+    "adidas logo",
+    "watermark",
+    "low resolution",
+    "blurred faces",
+    "incorrect family relationships",
+    "thumbs-up gesture",
+    "crossed arms",
+    "raised hands",
+    "props",
+    "food",
+    "drinks"
+  ]
+}

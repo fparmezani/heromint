@@ -50,7 +50,7 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Temas</h4>
             <ul className="space-y-2">
-              {["Futebol 2026", "Hero Card", "Reino Medieval", "Escola de Magia", "Avatar / Pôster"].map((item) => (
+              {["Futebol 2026", "Futebol Panini", "Futebol Familia", "Outros temas em breve"].map((item) => (
                 <li key={item}>
                   <Link href="/temas" className="text-sm text-[#94A3B8] hover:text-white transition-colors">
                     {item}

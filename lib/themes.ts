@@ -1,5 +1,27 @@
 import type { Theme } from "@/types/theme";
 
+export const BRAZILIAN_CLUBS = [
+  "Atlético Mineiro",
+  "Bahia",
+  "Botafogo",
+  "Chapecoense",
+  "Corinthians",
+  "Coritiba",
+  "Cruzeiro",
+  "Flamengo",
+  "Fluminense",
+  "Grêmio",
+  "Internacional",
+  "Mirassol-SP",
+  "Palmeiras",
+  "Red Bull Bragantino",
+  "Remo",
+  "Santos",
+  "São Paulo",
+  "Vasco da Gama",
+  "Vitória",
+];
+
 export const themes: Theme[] = [
   {
     id: "futebol-2026",
@@ -13,7 +35,7 @@ export const themes: Theme[] = [
       { key: "nome", label: "Nome do Jogador", type: "text", placeholder: "Seu nome completo", required: true },
       { key: "genero", label: "Gênero", type: "select", options: ["Feminino", "Masculino"], required: true },
       { key: "pais", label: "País", type: "text", placeholder: "Brasil", required: true },
-      { key: "time", label: "Time", type: "text", placeholder: "Nome do seu time", required: true },
+      { key: "time", label: "Time", type: "select", options: BRAZILIAN_CLUBS, required: true },
       { key: "dataNascimento", label: "Data de Nascimento", type: "date", required: true },
       { key: "altura", label: "Altura (cm)", type: "number", placeholder: "175", required: true },
       { key: "peso", label: "Peso (kg)", type: "number", placeholder: "70", required: true },

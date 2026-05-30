@@ -1,0 +1,130 @@
+{
+  "source": "HeroMint_Theme_Prompts_Detailed.pdf",
+  "slug": "futebol-2026",
+  "theme_name": "Futebol 2026",
+  "style": "premium sports collectible card, tournament-inspired but fully generic",
+  "size": "1024x1536",
+  "quality": "high",
+  "form_placeholders": {
+    "player_name": "{{NOME}}",
+    "gender": "{{GENERO}}",
+    "country": "{{PAIS}}",
+    "team": "{{TIME}}",
+    "birth_date": "{{DATA_NASCIMENTO}}",
+    "height": "{{ALTURA}}",
+    "weight": "{{PESO}}",
+    "position": "{{POSICAO}}"
+  },
+  "global_rules": {
+    "format": {
+      "orientation": "vertical",
+      "aspect_ratio": "2:3",
+      "resolution": "1024x1536"
+    },
+    "composition": "single edge-to-edge premium sports card design filling the entire canvas with zero outer border, zero frame and zero margin",
+    "text_requirements": {
+      "language": "Portuguese Brazilian",
+      "must_be_legible": true,
+      "avoid_text_errors": true
+    },
+    "identity_rule": "Preserve the exact face, apparent age, hairstyle, skin tone and gender presentation from the uploaded person photo."
+  },
+  "prompt": {
+    "main_goal": "Create a single premium football collectible card for the HeroMint Football 2026 universe using the uploaded person's identity and the selected Brazilian club.",
+    "card_structure": {
+      "shape": "vertical edge-to-edge premium sports card artwork filling the entire rectangular canvas",
+      "border": "ABSOLUTELY NONE: no outer border, no gold frame, no metallic frame, no rounded card outline, no beveled edge, no ornamental corner and no margin",
+      "inner_background": "deep navy blue with subtle sport-card texture and Brazil-inspired green/yellow accents",
+      "texture": "subtle premium printed card texture, soft vignette, cinematic depth, no unrelated theme elements",
+      "layout": "top metadata area, central portrait area, vertical side label, lower information panel"
+    },
+    "header_area": {
+      "top_left": {
+        "text": "2026",
+        "style": "small gold and white year badge inside dark circular seal"
+      },
+      "top_right": {
+        "icon": "generic white trophy icon, not resembling official tournament marks",
+        "text": "COPA 2026",
+        "style": "white uppercase bold text"
+      }
+    },
+    "right_side_area": {
+      "flag": "generic {{PAIS}}-inspired circular flag symbol",
+      "vertical_text": "{{PAIS_CODIGO}}",
+      "style": "bold white vertical letters on the right side"
+    },
+    "central_character_area": {
+      "position": "centered upper body portrait, sober professional player pose, face clearly visible",
+      "lighting": "cinematic key light, rim light matching the theme palette, premium product-render finish",
+      "identity_rule": "preserve exact facial characteristics from the uploaded person image",
+      "jersey": "bright yellow Brazil-inspired football jersey with green collar and green sleeve details, number 10 on the chest, no brand logo; apply the supplied {{TIME}} club crest accurately as a small chest badge only"
+    },
+    "bottom_panel": {
+      "position": "lower third of the card",
+      "shape": "dark navy rectangular information panel with angled upper corners",
+      "border": "no enclosing border and no gold outline; use only subtle flat separators between text rows",
+      "player_name": {
+        "text": "{{NOME}}",
+        "style": "large uppercase white condensed bold font, centered, high contrast, very legible"
+      },
+      "stats": {
+        "text": "{{DATA_NASCIMENTO}} | {{ALTURA}} | {{PESO}}",
+        "style": "white medium condensed text, centered, separated by gold vertical dividers"
+      },
+      "team": {
+        "text": "{{TIME}}",
+        "style": "white uppercase condensed font, centered near the bottom"
+      },
+      "bottom_left_badge": {
+        "description": "use the supplied {{TIME}} club crest reference image accurately, without inventing or altering the badge",
+        "position": "bottom left"
+      },
+      "bottom_right_icon": {
+        "description": "single metallic gold star",
+        "position": "bottom right"
+      }
+    },
+    "visual_identity": {
+      "palette": ["yellow", "green", "blue", "gold", "dark navy"],
+      "symbols": ["selected club crest reference", "gold star", "green and yellow sport accents", "generic trophy"],
+      "material_finish": "glossy edge-to-edge sports design, high contrast, professional commercial quality, absolutely no metallic gold frame"
+    },
+    "selected_club_crest_override": "The second uploaded reference image is the selected {{TIME}} crest. Apply that exact crest as a small chest badge on the bright yellow Brazil-inspired jersey and once in the bottom-left badge. Do not change the jersey into the club uniform. This user-requested club crest is the only real club mark allowed."
+  },
+  "negative_prompt": [
+    "unrelated copyrighted logos",
+    "official sports federation logos",
+    "FIFA logo",
+    "Panini logo",
+    "Nike logo",
+    "Adidas logo",
+    "Puma logo",
+    "watermark",
+    "blurry text",
+    "misspelled text",
+    "unreadable typography",
+    "distorted face",
+    "deformed anatomy",
+    "extra fingers",
+    "low resolution",
+    "cropped card",
+    "cut off border",
+    "outer border",
+    "gold border",
+    "gold frame",
+    "metallic frame",
+    "rounded outer card frame",
+    "beveled edge",
+    "ornamental corners",
+    "gold outline around the canvas",
+    "club uniform",
+    "club jersey colors",
+    "multiple cards",
+    "background card stack",
+    "podium",
+    "invented club crest",
+    "altered selected club crest",
+    "additional club logos"
+  ]
+}

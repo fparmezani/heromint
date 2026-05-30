@@ -20,8 +20,8 @@ const benefits = [
   },
   {
     icon: Layers,
-    title: "Diversos Temas",
-    description: "Do futebol à fantasia, do profissional ao pet, escolha o universo que mais combina com você.",
+    title: "Colecao Futebol",
+    description: "Escolha entre retrato de jogador, figurinha colecionavel e foto especial com toda a familia.",
     gradient: "from-[#2563EB] to-[#1D4ED8]",
     glow: "rgba(37,99,235,0.2)",
   },
