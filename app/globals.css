@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-background: #020617;
+  --color-surface: #0F172A;
+  --color-primary-blue: #2563EB;
+  --color-epic-purple: #7C3AED;
+  --color-legend-gold: #FBBF24;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #94A3B8;
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-border: #1E293B;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-impact: "Bebas Neue", "Anton", sans-serif;
+
+  --radius-card: 24px;
+  --radius-btn: 16px;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #020617;
+    color: #FFFFFF;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0F172A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2563EB;
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  }
+
+  .glass-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #1E293B;
+    backdrop-filter: blur(12px);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.4), 0 0 60px rgba(37, 99, 235, 0.1);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.4), 0 0 60px rgba(124, 58, 237, 0.1);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+  }
+
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.3), 0 0 60px rgba(124, 58, 237, 0.15);
+    border-color: rgba(37, 99, 235, 0.5);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+    color: white;
+    font-weight: 700;
+    height: 56px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.5), 0 0 60px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: white;
+    font-weight: 600;
+    height: 56px;
+    border-radius: 16px;
+    border: 1px solid rgba(37, 99, 235, 0.5);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: #2563EB;
+  }
+
+  .font-impact {
+    font-family: "Bebas Neue", "Anton", sans-serif;
+  }
+
+  .section-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delay {
+    animation: float 6s ease-in-out 1s infinite;
+  }
+
+  .animate-float-delay-2 {
+    animation: float 6s ease-in-out 2s infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(var(--rotate, 0deg)); }
+  50% { transform: translateY(-20px) rotate(var(--rotate, 0deg)); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.7), 0 0 80px rgba(37, 99, 235, 0.4); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(var(--tw-gradient-stops));
+}

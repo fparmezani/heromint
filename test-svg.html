@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SVG Data URI Test</title>
+</head>
+<body>
+  <h1>Testing SVG Data URI Rendering</h1>
+
+  <h2>Direct SVG (Inline)</h2>
+  <svg xmlns='http://www.w3.org/2000/svg' width='256' height='384'>
+    <rect fill='#064E3B' width='256' height='384'/>
+    <text x='128' y='192' font-size='24' fill='#FBBF24' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>FUTEBOL 2026</text>
+  </svg>
+
+  <h2>SVG Data URI (in img tag)</h2>
+  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Crect fill='%23064E3B' width='512' height='768'/%3E%3Ctext x='256' y='384' font-size='48' fill='%23FBBF24' text-anchor='middle' dominant-baseline='middle' font-weight='bold'%3EFUTEBOL 2026%3C/text%3E%3C/svg%3E" alt="Test" width="256" height="384" style="border: 2px solid red;">
+
+  <h2>SVG Data URI (no size constraints)</h2>
+  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Crect fill='%23064E3B' width='512' height='768'/%3E%3Ctext x='256' y='384' font-size='48' fill='%23FBBF24' text-anchor='middle' dominant-baseline='middle' font-weight='bold'%3EFUTEBOL 2026%3C/text%3E%3C/svg%3E" alt="Test" style="border: 2px solid blue; max-width: 300px;">
+</body>
+</html>
