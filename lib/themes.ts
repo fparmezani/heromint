@@ -195,6 +195,16 @@ export const themes: Theme[] = [
   },
 ];
 
+export const AVAILABLE_THEME_IDS = [
+  "futebol-2026",
+  "futebol-panini",
+  "futebol-familia",
+] as const;
+
+export function isThemeAvailable(id: string): boolean {
+  return AVAILABLE_THEME_IDS.includes(id as typeof AVAILABLE_THEME_IDS[number]);
+}
+
 export function getThemeById(id: string): Theme | undefined {
   return themes.find((t) => t.id === id);
 }
