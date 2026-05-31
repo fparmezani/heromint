@@ -341,65 +341,36 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
   const theme = input.theme;
   const gender = input.formData.genero === "Feminino" ? "woman" : input.formData.genero === "Masculino" ? "man" : "person";
 
-  if (theme === "futebol-2026") {
-    const clubCrest = getClubCrestDataUri(input.formData.time);
+  if (theme === "futebol-2026" || theme === "futebol-panini") {
     const personPhoto = Array.isArray(input.uploadedImageBase64)
       ? input.uploadedImageBase64[0]
       : input.uploadedImageBase64;
 
     if (!personPhoto) {
-      throw new Error("Futebol 2026 requires a person reference photo");
-    }
-    if (!clubCrest) {
-      throw new Error(`Club crest not found for team: ${input.formData.time || "not informed"}`);
+      throw new Error(`${theme} requires a person reference photo`);
     }
 
-    const prompt = buildFootball2026Prompt(input.formData);
+    const prompt = theme === "futebol-2026"
+      ? buildFootball2026Prompt(input.formData)
+      : buildFootballPaniniPrompt(input.formData);
+
+    console.log(`🎨 Using flux-kontext-pro for ${theme}...`);
     const output = await replicate.run(
-      "google/nano-banana-2",
+      "black-forest-labs/flux-kontext-pro",
       {
         input: {
           prompt,
-          image_input: [personPhoto, clubCrest],
+          input_image: personPhoto,
           aspect_ratio: "2:3",
-          resolution: "2K",
           output_format: "jpg",
+          output_quality: 95,
+          safety_tolerance: 2,
         },
       }
     );
 
     const imageUrl = Array.isArray(output) ? String(output[0]) : String(output);
-    return { imageUrl, promptUsed: prompt, isMock: false };
-  }
-
-  if (theme === "futebol-panini") {
-    const clubCrest = getClubCrestDataUri(input.formData.time);
-    const personPhoto = Array.isArray(input.uploadedImageBase64)
-      ? input.uploadedImageBase64[0]
-      : input.uploadedImageBase64;
-
-    if (!personPhoto) {
-      throw new Error("Futebol Panini requires a person reference photo");
-    }
-    if (!clubCrest) {
-      throw new Error(`Club crest not found for team: ${input.formData.time || "not informed"}`);
-    }
-
-    const prompt = buildFootballPaniniPrompt(input.formData);
-    const output = await replicate.run(
-      "google/nano-banana-2",
-      {
-        input: {
-          prompt,
-          image_input: [personPhoto, clubCrest],
-          aspect_ratio: "2:3",
-          resolution: "2K",
-          output_format: "jpg",
-        },
-      }
-    );
-
-    const imageUrl = Array.isArray(output) ? String(output[0]) : String(output);
+    console.log(`✅ ${theme} image generated`);
     return { imageUrl, promptUsed: prompt, isMock: false };
   }
 
