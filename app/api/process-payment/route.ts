@@ -171,7 +171,7 @@ function getPaymentUrl(packageType: string, orderId: string, isSandbox: boolean)
   };
 
   const productionUrls: Record<string, string> = {
-    individual: "https://www.asaas.com/c/60vtiurluc6gmh3w",
+    individual: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
     premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
     completo: "https://www.asaas.com/c/completo-10-images",
     "futebol-familia": "https://www.asaas.com/c/hmcve2c357wghwb7",

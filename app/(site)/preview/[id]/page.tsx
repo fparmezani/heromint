@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { ArrowLeft, CreditCard, Shield, Star, Loader2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, CreditCard, Shield, Star, Loader2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { CardTemplate } from "@/components/preview/CardTemplate";
 import { PACKAGE_CONFIG } from "@/types/collectible";
@@ -38,6 +38,7 @@ export default function PreviewPage() {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -54,6 +55,14 @@ export default function PreviewPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [id]);
+
+  // Verifica se há um pedido pendente no localStorage
+  useEffect(() => {
+    const pendingOrder = localStorage.getItem('heromint_pending_order_id');
+    if (pendingOrder) {
+      setPendingOrderId(pendingOrder);
+    }
+  }, []);
 
   const handlePaymentFlow = () => {
     if (!userEmail || !userEmail.includes("@")) {
@@ -134,8 +143,10 @@ export default function PreviewPage() {
       const result = await response.json();
       
       if (result.success) {
-        // Redireciona para pagamento real (mesma aba, Asaas retorna ao callback)
-        window.location.href = result.order.payment_url;
+        // Abre Asaas em nova aba e guarda orderId para verificar depois
+        setPendingOrderId(result.order.id);
+        localStorage.setItem('heromint_pending_order_id', result.order.id);
+        window.open(result.order.payment_url, '_blank');
       } else {
         alert('Erro no processamento: ' + result.error);
       }
@@ -392,6 +403,22 @@ export default function PreviewPage() {
                 </>
               )}
             </button>
+
+            {/* Botão para verificar entrega após pagamento */}
+            {pendingOrderId && (
+              <div className="mt-3 p-3 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg">
+                <p className="text-[#22C55E] text-xs font-medium mb-2 text-center">
+                  ✅ Pagamento iniciado! Já pagou no Asaas?
+                </p>
+                <Link
+                  href={`/entrega/${pendingOrderId}`}
+                  className="w-full bg-[#22C55E] text-white font-medium py-2 px-4 rounded-lg hover:bg-[#16A34A] transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Verificar Meu Pagamento
+                </Link>
+              </div>
+            )}
 
             <p className="text-xs text-[#94A3B8] text-center">
               Asaas • Pagamento seguro • Pix, Cartão ou Boleto
