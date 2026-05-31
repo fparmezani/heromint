@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         id: order.id,
         collectible_id: collectibleId,
         status: 'pending',
-        payment_url: getPaymentUrl(packageType, order.id),
+        payment_url: getPaymentUrl(packageType, order.id, isSandboxEnvironment()),
       },
     });
 
@@ -162,22 +162,28 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function getPaymentUrl(packageType: string, orderId: string): string {
-  const baseUrls: Record<string, string> = {
+function getPaymentUrl(packageType: string, orderId: string, isSandbox: boolean): string {
+  const sandboxUrls: Record<string, string> = {
+    individual: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
+    premium: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
+    completo: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
+    "futebol-familia": "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
+  };
+
+  const productionUrls: Record<string, string> = {
     individual: "https://www.asaas.com/c/60vtiurluc6gmh3w",
     premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
-    completo: "https://www.asaas.com/c/completo-10-images", // TODO: Criar link
+    completo: "https://www.asaas.com/c/completo-10-images",
     "futebol-familia": "https://www.asaas.com/c/hmcve2c357wghwb7",
   };
 
+  const baseUrls = isSandbox ? sandboxUrls : productionUrls;
   const baseUrl = baseUrls[packageType];
+
   if (!baseUrl) {
-    throw new Error("Link de pagamento não configurado para este pacote");
+    throw new Error(`Link de pagamento ${isSandbox ? "sandbox" : "produção"} não configurado para o pacote: ${packageType}`);
   }
 
-  // URL para retornar ao site após pagamento
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://heromint.vercel.app"}/entrega/${orderId}`;
-
-  // Asaas usa 'callback' para redirecionar após pagamento
   return `${baseUrl}?callback=${encodeURIComponent(callbackUrl)}&order_id=${orderId}`;
 }
