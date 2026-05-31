@@ -14,8 +14,11 @@ interface GenerationResult {
   collectibleId: string;
   images: Array<{
     imageUrl: string;
+    previewImageUrl?: string;
+    deliveryToken?: string;
     promptUsed: string;
     isMock: boolean;
+    templateUsed?: string;
   }>;
   totalGenerated: number;
   packageType: PackageType;

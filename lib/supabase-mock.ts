@@ -14,11 +14,11 @@ export interface Order {
   user_id: string;
   collectible_id: string;
   theme_name: string;
-  package_type: 'individual' | 'premium' | 'completo';
+  package_type: 'individual' | 'premium' | 'completo' | 'futebol-familia';
   total_amount: number;
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   payment_id?: string;
-  form_data: Record<string, any>;
+  form_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -69,9 +69,9 @@ export async function createOrder(orderData: {
   user_id: string;
   collectible_id: string;
   theme_name: string;
-  package_type: 'individual' | 'premium' | 'completo';
+  package_type: 'individual' | 'premium' | 'completo' | 'futebol-familia';
   total_amount: number;
-  form_data: Record<string, any>;
+  form_data: Record<string, unknown>;
   payment_id?: string;
 }) {
   const order: Order = {
@@ -112,7 +112,7 @@ export async function updateOrderPaymentStatus(
 export async function getUserOrders(userId: string) {
   const userOrderIds = JSON.parse(localStorage.getItem(`user_orders_${userId}`) || '[]');
   
-  const orders = userOrderIds.map((orderId: string) => {
+  const orders: Array<Order & { generated_images: GeneratedImage[] }> = userOrderIds.map((orderId: string) => {
     const orderData = localStorage.getItem(`order_${orderId}`);
     if (!orderData) return null;
     
@@ -125,7 +125,7 @@ export async function getUserOrders(userId: string) {
       ...order,
       generated_images: images,
     };
-  }).filter(Boolean);
+  }).filter((order: Order & { generated_images: GeneratedImage[] } | null): order is Order & { generated_images: GeneratedImage[] } => Boolean(order));
   
   return orders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
@@ -144,7 +144,7 @@ export async function saveGeneratedImages(images: {
   }));
   
   // Agrupa por order_id
-  const imagesByOrder: Record<string, any[]> = {};
+  const imagesByOrder: Record<string, GeneratedImage[]> = {};
   imagesWithIds.forEach(img => {
     if (!imagesByOrder[img.order_id]) {
       imagesByOrder[img.order_id] = [];
@@ -170,7 +170,7 @@ export async function getOrderImages(orderId: string) {
 export const supabase = {
   from: (table: string) => ({
     select: (columns?: string) => ({
-      eq: (column: string, value: any) => ({
+      eq: (column: string, value: unknown) => ({
         single: async () => {
           if (table === 'orders') {
             const orderData = localStorage.getItem(`order_${value}`);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { WatermarkOverlay } from "./WatermarkOverlay";
 import { shouldBypassWatermark } from "@/lib/environment";
 
@@ -2480,9 +2481,44 @@ export function CardTemplate({
   showWatermark = true,
 }: CardTemplateProps) {
   const effectivePhoto = generatedImageUrl || photoUrl || PLACEHOLDER_IMAGE;
+  const [isPreviewObscured, setIsPreviewObscured] = useState(false);
   
   // Remove marca d'água em ambiente sandbox para testes
   const shouldShowWatermark = showWatermark && !shouldBypassWatermark();
+
+  useEffect(() => {
+    if (!shouldShowWatermark) return;
+
+    let revealTimeout: number | undefined;
+    const obscureTemporarily = () => {
+      setIsPreviewObscured(true);
+      window.clearTimeout(revealTimeout);
+      revealTimeout = window.setTimeout(() => setIsPreviewObscured(false), 1800);
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsPreviewObscured(true);
+      } else {
+        obscureTemporarily();
+      }
+    };
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "PrintScreen") obscureTemporarily();
+    };
+
+    window.addEventListener("blur", obscureTemporarily);
+    window.addEventListener("focus", obscureTemporarily);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.clearTimeout(revealTimeout);
+      window.removeEventListener("blur", obscureTemporarily);
+      window.removeEventListener("focus", obscureTemporarily);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [shouldShowWatermark]);
 
   const inner = ({
     "futebol-2026": <FutebolCard photoUrl={effectivePhoto} />,
@@ -2509,6 +2545,15 @@ export function CardTemplate({
 
   return (
     <div
+      onContextMenu={(event) => {
+        if (!shouldShowWatermark) return;
+        event.preventDefault();
+        setIsPreviewObscured(true);
+        window.setTimeout(() => setIsPreviewObscured(false), 1800);
+      }}
+      onDragStart={(event) => {
+        if (shouldShowWatermark) event.preventDefault();
+      }}
       style={{
         position: "relative",
         aspectRatio: isLandscape ? "16/9" : "2/3",
@@ -2521,8 +2566,23 @@ export function CardTemplate({
           "0 0 80px rgba(124,58,237,0.4), 0 0 160px rgba(37,99,235,0.15), 0 30px 60px rgba(0,0,0,0.7)",
       }}
     >
-      {inner}
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          filter: isPreviewObscured ? "blur(22px)" : "none",
+          transition: "filter 120ms ease",
+          userSelect: "none",
+        }}
+      >
+        {inner}
+      </div>
       {shouldShowWatermark && <WatermarkOverlay />}
+      {shouldShowWatermark && isPreviewObscured && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0F172A]/55 px-5 text-center text-sm font-bold tracking-wider text-white">
+          PREVIEW PROTEGIDO
+        </div>
+      )}
     </div>
   );
 }

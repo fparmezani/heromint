@@ -36,6 +36,7 @@ CREATE TABLE generated_images (
     template_used VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_size INTEGER, -- tamanho em bytes
+    indisponivel BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -124,3 +125,4 @@ COMMENT ON COLUMN orders.total_amount IS 'Valor total em centavos (ex: 990 = R$ 
 COMMENT ON COLUMN orders.form_data IS 'Dados do formulário em JSON (nome, time, etc)';
 COMMENT ON COLUMN generated_images.image_url IS 'URL da imagem gerada (Replicate/CDN)';
 COMMENT ON COLUMN generated_images.template_used IS 'Template usado (futebol-2026, futebol-panini, etc)';
+COMMENT ON COLUMN generated_images.indisponivel IS 'Indica imagens quebradas que não devem ser exibidas';

@@ -3,6 +3,7 @@ import Replicate from "replicate";
 import { generateCustomizedPrompt } from "./claude-vision-prompt";
 import { buildFootball2026Prompt, getClubCrestDataUri } from "./football-2026-prompt";
 import { buildFootballFamilyPrompt } from "./football-family-prompt";
+import { buildFootballPaniniPrompt } from "./football-panini-prompt";
 
 export interface GenerateImageInput {
   theme: string;
@@ -196,9 +197,13 @@ CRITICAL REQUIREMENTS:
 }
 
 function getBasePrompt(theme: string, formData: Record<string, string>): string {
-  return theme === "futebol-2026"
-    ? buildFootball2026Prompt(formData)
-    : getDetailedPrompt(theme, formData);
+  if (theme === "futebol-2026") {
+    return buildFootball2026Prompt(formData);
+  }
+  if (theme === "futebol-panini") {
+    return buildFootballPaniniPrompt(formData);
+  }
+  return getDetailedPrompt(theme, formData);
 }
 
 function getAgeFromFormData(formData: Record<string, string>): number | null {
@@ -367,12 +372,39 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
     return { imageUrl, promptUsed: prompt, isMock: false };
   }
 
-  // Minimal prompt - let the input_image dominate completely
-  const prompt = theme === "futebol-panini"
-    ? `Apply a bright yellow and green Brazil football jersey with number 10 to the ${gender} in this photo. Change background to turquoise. Keep the exact same face, hair, skin tone, expression, and AGE. Same person, same age — if the person is a child, keep them as a child.
+  if (theme === "futebol-panini") {
+    const clubCrest = getClubCrestDataUri(input.formData.time);
+    const personPhoto = Array.isArray(input.uploadedImageBase64)
+      ? input.uploadedImageBase64[0]
+      : input.uploadedImageBase64;
 
-POSE ADJUSTMENT: Adjust the pose to front-facing — shoulders squared to camera, head straight, looking directly at lens. Do NOT change the face, age, or identity — only adjust the body angle.`
-    : `Transform the ${gender} in this photo into the requested theme style. Keep the exact same face, identity, and AGE. Only change clothing and background.`;
+    if (!personPhoto) {
+      throw new Error("Futebol Panini requires a person reference photo");
+    }
+    if (!clubCrest) {
+      throw new Error(`Club crest not found for team: ${input.formData.time || "not informed"}`);
+    }
+
+    const prompt = buildFootballPaniniPrompt(input.formData);
+    const output = await replicate.run(
+      "google/nano-banana-2",
+      {
+        input: {
+          prompt,
+          image_input: [personPhoto, clubCrest],
+          aspect_ratio: "2:3",
+          resolution: "2K",
+          output_format: "jpg",
+        },
+      }
+    );
+
+    const imageUrl = Array.isArray(output) ? String(output[0]) : String(output);
+    return { imageUrl, promptUsed: prompt, isMock: false };
+  }
+
+  // Minimal prompt - let the input_image dominate completely
+  const prompt = `Transform the ${gender} in this photo into the requested theme style. Keep the exact same face, identity, and AGE. Only change clothing and background.`;
 
   const output = await replicate.run(
     "black-forest-labs/flux-kontext-pro",
@@ -545,32 +577,19 @@ export async function generateMultipleCollectibleImages(
     }
   }
 
-  // Special handling for football themes - distribute between templates
-  const shouldDistributeFootballTemplates = input.theme === "futebol-panini" && versions >= 5;
-  
   for (let i = 0; i < versions; i++) {
     console.log(`📸 Generating image ${i + 1}/${versions}...`);
-    const shouldReuseFootballReference = input.theme === "futebol-2026" && photoCount > 0;
+    const shouldReuseFootballReference =
+      (input.theme === "futebol-2026" || input.theme === "futebol-panini") && photoCount > 0;
     const currentPhoto = photos[i] ?? (shouldReuseFootballReference ? photos[0] : undefined);
     
     try {
       let prompt: string;
-      let currentTheme = input.theme;
-      
-      // Distribute football templates: 3 futebol-2026 + 2 futebol-panini
-      if (shouldDistributeFootballTemplates) {
-        if (i < 3) {
-          currentTheme = "futebol-2026";
-          console.log(`🏆 Using futebol-2026 template for image ${i + 1}`);
-        } else {
-          currentTheme = "futebol-panini";
-          console.log(`🎯 Using futebol-panini template for image ${i + 1}`);
-        }
-      }
+      const currentTheme = input.theme;
       
       // Generate base prompt
-      if (currentTheme === "futebol-2026") {
-        prompt = buildFootball2026Prompt(input.formData);
+      if (currentTheme === "futebol-2026" || currentTheme === "futebol-panini") {
+        prompt = getBasePrompt(currentTheme, input.formData);
       } else if (currentPhoto) {
         try {
           prompt = await generateCustomizedPrompt(currentPhoto, currentTheme, input.formData);
@@ -595,7 +614,7 @@ export async function generateMultipleCollectibleImages(
         // Use flux-kontext-pro for photo editing
         result = await generateWithKontext({ 
           ...input, 
-          theme: input.theme, 
+          theme: currentTheme,
           formData: input.formData,
           uploadedImageBase64: currentPhoto
         }, prompt);

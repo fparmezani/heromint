@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentStatus } from "@/lib/supabase";
 import { isSandboxEnvironment } from "@/lib/environment";
 import { PACKAGE_CONFIG } from "@/types/collectible";
+import { readGeneratedImageToken } from "@/lib/generated-image-token";
+
+interface GeneratedPaymentImage {
+  imageUrl: string;
+  templateUsed?: string;
+  deliveryToken?: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,6 +74,19 @@ export async function POST(request: NextRequest) {
       total_amount: packageConfig.price,
       form_data: formData,
     });
+
+    if (generatedImages && generatedImages.length > 0 && !isSandboxEnvironment() && !isDevMode) {
+      const imageRecords = (generatedImages as GeneratedPaymentImage[]).map((img, index) => ({
+        order_id: order.id,
+        image_url: img.deliveryToken
+          ? readGeneratedImageToken(img.deliveryToken, collectibleId).imageUrl
+          : img.imageUrl,
+        template_used: img.templateUsed || 'unknown',
+        file_name: `${themeName}_v${index + 1}_${img.templateUsed || 'card'}.png`,
+      }));
+
+      await saveGeneratedImages(imageRecords);
+    }
     console.log('✅ [PAYMENT] Pedido criado:', { id: order.id, status: order.payment_status });
 
     console.log('🔧 [PAYMENT] Verificando modo de desenvolvimento...');
@@ -82,9 +102,11 @@ export async function POST(request: NextRequest) {
       if (generatedImages && generatedImages.length > 0) {
         console.log('🖼️ [PAYMENT] Salvando imagens geradas...', { count: generatedImages.length });
         
-        const imageRecords = generatedImages.map((img: any, index: number) => ({
+        const imageRecords = (generatedImages as GeneratedPaymentImage[]).map((img, index) => ({
           order_id: order.id,
-          image_url: img.imageUrl,
+          image_url: img.deliveryToken
+            ? readGeneratedImageToken(img.deliveryToken, collectibleId).imageUrl
+            : img.imageUrl,
           template_used: img.templateUsed || 'unknown',
           file_name: `${themeName}_v${index + 1}_${img.templateUsed || 'card'}.png`,
         }));
@@ -122,16 +144,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const normalizedError = error instanceof Error ? error : new Error("Erro desconhecido");
     console.error("❌ [PAYMENT] ERRO CRÍTICO:", error);
-    console.error("❌ [PAYMENT] Stack trace:", error.stack);
+    console.error("❌ [PAYMENT] Stack trace:", normalizedError.stack);
     console.error("❌ [PAYMENT] Tipo do erro:", typeof error);
-    console.error("❌ [PAYMENT] Mensagem:", error.message);
+    console.error("❌ [PAYMENT] Mensagem:", normalizedError.message);
     
     return NextResponse.json(
       { 
         error: "Erro interno do servidor",
-        details: error.message,
+        details: normalizedError.message,
         timestamp: new Date().toISOString()
       },
       { status: 500 }
@@ -145,6 +168,7 @@ function getPaymentUrl(packageType: string, orderId: string): string {
     individual: "https://www.asaas.com/c/60vtiurluc6gmh3w",
     premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
     completo: "https://www.asaas.com/c/completo-10-images", // TODO: Criar link
+    "futebol-familia": "https://www.asaas.com/c/hmcve2c357wghwb7",
   };
   
   const baseUrl = baseUrls[packageType];

@@ -4,6 +4,7 @@ import {
   MAX_FAMILY_REFERENCE_PHOTOS,
 } from "@/lib/image-generation";
 import { persistGeneratedImage } from "@/lib/generated-image-storage";
+import { createGeneratedImageToken } from "@/lib/generated-image-token";
 import { hasClubCrest } from "@/lib/football-2026-prompt";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (theme === "futebol-2026") {
+    if (theme === "futebol-2026" || theme === "futebol-panini") {
       const playerPhotos = Array.isArray(uploadedPhotos)
         ? uploadedPhotos
         : uploadedPhotos
@@ -81,25 +82,36 @@ export async function POST(request: NextRequest) {
     });
 
     const collectibleId = `heromint_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const traceLabel =
+      formData.nome ||
+      formData.nomeFamilia ||
+      formData.nomeJogador1 ||
+      "HeroMint";
     const images = await Promise.all(
       result.images.map(async (image, index) => {
-        if (image.isMock || image.imageUrl.startsWith("data:")) {
+        if (image.isMock) {
           return image;
         }
 
         try {
-          const persistedImageUrl = await persistGeneratedImage(
+          const persistedImage = await persistGeneratedImage(
             image.imageUrl,
             collectibleId,
-            index
+            index,
+            traceLabel
           );
           return {
             ...image,
-            imageUrl: persistedImageUrl,
+            imageUrl: persistedImage.previewImageUrl,
+            previewImageUrl: persistedImage.previewImageUrl,
+            deliveryToken: createGeneratedImageToken({
+              collectibleId,
+              imageUrl: persistedImage.imageUrl,
+            }),
           };
         } catch (uploadError) {
           console.error(`Failed to persist generated image ${index + 1}:`, uploadError);
-          return image;
+          throw new Error("Unable to create protected preview");
         }
       })
     );

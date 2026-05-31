@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, Zap } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { LogOut, Menu, UserCircle, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
@@ -14,6 +15,10 @@ const navLinks = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const userLabel = session?.user?.name || session?.user?.email || "Minha conta";
+  const userImage = session?.user?.image;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1E293B] bg-[#020617]/90 backdrop-blur-xl">
@@ -50,9 +55,37 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/entrar" className="btn-secondary px-5 text-sm h-10 rounded-xl">
-              Entrar
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href="/minha-conta" className="btn-secondary px-4 text-sm h-10 rounded-xl gap-2 max-w-48">
+                  {userImage ? (
+                    <Image
+                      src={userImage}
+                      alt={userLabel}
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 shrink-0 rounded-full object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <UserCircle className="w-4 h-4 shrink-0" />
+                  )}
+                  <span className="truncate">{userLabel}</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="p-2.5 text-[#94A3B8] hover:text-white transition-colors"
+                  aria-label="Sair"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <Link href="/auth/signin" className="btn-secondary px-5 text-sm h-10 rounded-xl">
+                Entrar
+              </Link>
+            )}
             <Link href="/temas" className="btn-primary px-5 text-sm h-10 rounded-xl gap-1.5">
               <Zap className="w-4 h-4" />
               Criar Card de Futebol
@@ -92,9 +125,37 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 pt-2">
-                <Link href="/entrar" className="btn-secondary w-full text-sm h-12 rounded-xl" onClick={() => setMobileOpen(false)}>
-                  Entrar
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/minha-conta" className="btn-secondary w-full text-sm h-12 rounded-xl gap-2" onClick={() => setMobileOpen(false)}>
+                      {userImage ? (
+                        <Image
+                          src={userImage}
+                          alt={userLabel}
+                          width={24}
+                          height={24}
+                          className="h-6 w-6 shrink-0 rounded-full object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <UserCircle className="w-4 h-4" />
+                      )}
+                      <span className="truncate">{userLabel}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="btn-secondary w-full text-sm h-12 rounded-xl gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </>
+                ) : (
+                  <Link href="/auth/signin" className="btn-secondary w-full text-sm h-12 rounded-xl" onClick={() => setMobileOpen(false)}>
+                    Entrar
+                  </Link>
+                )}
                 <Link href="/temas" className="btn-primary w-full text-sm h-12 rounded-xl" onClick={() => setMobileOpen(false)}>
                   <Zap className="w-4 h-4" />
                   Criar Card de Futebol

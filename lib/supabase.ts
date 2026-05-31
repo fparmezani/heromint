@@ -29,7 +29,7 @@ export interface Order {
   total_amount: number; // em centavos
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   payment_id?: string; // ID do Asaas
-  form_data: Record<string, any>;
+  form_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +41,7 @@ export interface GeneratedImage {
   template_used: string;
   file_name: string;
   file_size?: number;
+  indisponivel: boolean;
   created_at: string;
 }
 
@@ -92,7 +93,7 @@ export async function createOrder(orderData: {
   theme_name: string;
   package_type: 'individual' | 'premium' | 'completo' | 'futebol-familia';
   total_amount: number;
-  form_data: Record<string, any>;
+  form_data: Record<string, unknown>;
   payment_id?: string;
 }) {
   console.log('📝 [SUPABASE] Criando pedido com dados:', orderData);
@@ -171,6 +172,18 @@ export async function getOrderImages(orderId: string) {
     .from('generated_images')
     .select('*')
     .eq('order_id', orderId);
+
+  if (error) throw error;
+  return data;
+}
+
+export async function markGeneratedImageUnavailable(imageId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('generated_images')
+    .update({ indisponivel: true })
+    .eq('id', imageId)
+    .select('id, indisponivel')
+    .single();
 
   if (error) throw error;
   return data;

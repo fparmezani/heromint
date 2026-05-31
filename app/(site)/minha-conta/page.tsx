@@ -1,20 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   User, 
   Download, 
-  Mail, 
-  Calendar, 
   Package, 
   CreditCard,
   Eye,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Loader2
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { getUserOrders, getOrCreateUser, type Order, type GeneratedImage } from "@/lib/supabase";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { getUserOrders, getOrCreateUser, type Order, type GeneratedImage, type User as AccountUser } from "@/lib/supabase";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 
 interface OrderWithImages extends Order {
@@ -28,23 +30,97 @@ function getDownloadExtension(contentType: string, imageCount: number) {
   return "jpg";
 }
 
+function OrderImageCarousel({
+  order,
+  onImageUnavailable,
+}: {
+  order: OrderWithImages;
+  onImageUnavailable: (orderId: string, imageId: string) => void;
+}) {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const images = order.generated_images.filter((image) => !image.indisponivel);
+  const safeActiveImageIndex = Math.min(activeImageIndex, Math.max(images.length - 1, 0));
+  const activeImage = images[safeActiveImageIndex];
+  const hasMultipleImages = images.length > 1;
+
+  if (!activeImage) {
+    return null;
+  }
+
+  const showPrevious = () => {
+    setActiveImageIndex((safeActiveImageIndex - 1 + images.length) % images.length);
+  };
+
+  const showNext = () => {
+    setActiveImageIndex((safeActiveImageIndex + 1) % images.length);
+  };
+
+  return (
+    <div className="mb-4 flex justify-center">
+      <div className="relative w-full max-w-xs overflow-hidden rounded-xl border border-[#1E293B] bg-[#020617] aspect-[2/3]">
+        <a
+          href={activeImage.image_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block h-full w-full"
+          aria-label={`Abrir imagem ${activeImageIndex + 1}`}
+        >
+          <Image
+            src={activeImage.image_url}
+            alt={`Imagem ${safeActiveImageIndex + 1} do pedido ${order.collectible_id}`}
+            fill
+            unoptimized
+            onError={() => onImageUnavailable(order.id, activeImage.id)}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        </a>
+
+        {hasMultipleImages && (
+          <>
+            <button
+              type="button"
+              onClick={showPrevious}
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80"
+              aria-label="Imagem anterior"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={showNext}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80"
+              aria-label="Próxima imagem"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        <span className="absolute bottom-3 left-3 rounded bg-black/60 px-2 py-1 text-xs text-white">
+          Imagem {safeActiveImageIndex + 1} de {images.length}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function MinhaContaPage() {
-  const [email, setEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [orders, setOrders] = useState<OrderWithImages[]>([]);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AccountUser | null>(null);
+  const ordersCarouselRef = useRef<HTMLDivElement>(null);
+  const { data: session, status } = useSession();
+  const email = session?.user?.email || "";
+  const visibleOrders = orders.filter((order) => (
+    order.generated_images.some((image) => !image.indisponivel)
+  ));
 
-  const handleLogin = async () => {
-    if (!email || !email.includes("@")) {
-      alert("Por favor, digite um email válido");
-      return;
-    }
-
+  const loadAccount = useCallback(async (accountEmail: string) => {
     setLoading(true);
     try {
       // Busca ou cria usuário
-      const userData = await getOrCreateUser(email);
+      const userData = await getOrCreateUser(accountEmail, session?.user?.name || undefined);
       setUser(userData);
       
       // Busca pedidos do usuário
@@ -54,23 +130,40 @@ export default function MinhaContaPage() {
       setIsLoggedIn(true);
       
       // Salva no localStorage para próximas visitas
-      localStorage.setItem("heromint_user_email", email);
+      localStorage.setItem("heromint_user_email", accountEmail);
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       alert("Erro ao acessar conta. Tente novamente.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !email || isLoggedIn || loading) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void loadAccount(email);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [email, isLoggedIn, loadAccount, loading, status]);
 
   const handleDownloadImages = async (order: OrderWithImages) => {
+    const availableImages = order.generated_images.filter((image) => !image.indisponivel);
+
+    if (availableImages.length === 0) {
+      alert("Nenhuma imagem disponível para download.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/download-images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           collectibleId: order.collectible_id,
-          imageUrls: order.generated_images.map(img => ({
+          imageUrls: availableImages.map(img => ({
             imageUrl: img.image_url,
             templateUsed: img.template_used,
           })),
@@ -84,7 +177,7 @@ export default function MinhaContaPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `HeroMint_${order.theme_name}_${order.collectible_id}.${getDownloadExtension(blob.type, order.generated_images.length)}`;
+        a.download = `HeroMint_${order.theme_name}_${order.collectible_id}.${getDownloadExtension(blob.type, availableImages.length)}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -98,13 +191,24 @@ export default function MinhaContaPage() {
     }
   };
 
-  // Verifica se há email salvo no localStorage
-  useEffect(() => {
-    const savedEmail = localStorage.getItem("heromint_user_email");
-    if (savedEmail) {
-      setEmail(savedEmail);
-    }
-  }, []);
+  const handleImageUnavailable = (orderId: string, imageId: string) => {
+    setOrders((currentOrders) => currentOrders.map((order) => (
+      order.id === orderId
+        ? {
+            ...order,
+            generated_images: order.generated_images.filter((image) => image.id !== imageId),
+          }
+        : order
+    )));
+
+    void fetch("/api/generated-images/mark-unavailable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageId }),
+    }).catch((error) => {
+      console.error("Erro ao marcar imagem indisponível:", error);
+    });
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -137,6 +241,13 @@ export default function MinhaContaPage() {
       case "refunded": return "🔄 Reembolsado";
       default: return status;
     }
+  };
+
+  const scrollOrders = (direction: "previous" | "next") => {
+    ordersCarouselRef.current?.scrollBy({
+      left: direction === "previous" ? -420 : 420,
+      behavior: "smooth",
+    });
   };
 
   if (!isLoggedIn) {
@@ -174,41 +285,28 @@ export default function MinhaContaPage() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Email da Conta
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    className="w-full px-4 py-3 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#94A3B8] focus:border-[#2563EB] focus:outline-none"
-                  />
-                </div>
-
-                <button
-                  onClick={handleLogin}
-                  disabled={loading || !email}
-                  className="w-full bg-[#2563EB] text-white font-medium py-3 px-4 rounded-lg hover:bg-[#1D4ED8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Acessando...
-                    </>
-                  ) : (
+                {status === "authenticated" ? (
+                  <div className="flex items-center justify-center gap-2 rounded-lg bg-[#1E293B] px-4 py-3 text-sm text-[#94A3B8]">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Carregando sua conta...
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => signIn("google", { callbackUrl: "/minha-conta" })}
+                    className="w-full bg-[#2563EB] text-white font-medium py-3 px-4 rounded-lg hover:bg-[#1D4ED8] flex items-center justify-center gap-2 transition-colors"
+                  >
                     <>
                       <User className="w-4 h-4" />
-                      Acessar Minha Conta
+                      Entrar com Google
                     </>
-                  )}
-                </button>
+                  </button>
+                )}
               </div>
 
               <div className="mt-6 pt-6 border-t border-[#1E293B] text-center">
                 <p className="text-[#64748B] text-sm">
-                  Digite o email usado nas suas compras para acessar o histórico
+                  Use sua conta Google para acessar seu histórico de pedidos
                 </p>
               </div>
             </motion.div>
@@ -252,6 +350,7 @@ export default function MinhaContaPage() {
               setIsLoggedIn(false);
               setOrders([]);
               localStorage.removeItem("heromint_user_email");
+              void signOut({ callbackUrl: "/" });
             }}
             className="text-[#94A3B8] hover:text-white transition-colors text-sm"
           >
@@ -265,7 +364,7 @@ export default function MinhaContaPage() {
             <div className="flex items-center gap-3">
               <Package className="w-8 h-8 text-[#2563EB]" />
               <div>
-                <p className="text-2xl font-bold text-white">{orders.length}</p>
+                <p className="text-2xl font-bold text-white">{visibleOrders.length}</p>
                 <p className="text-[#94A3B8] text-sm">Pedidos Realizados</p>
               </div>
             </div>
@@ -276,7 +375,7 @@ export default function MinhaContaPage() {
               <Download className="w-8 h-8 text-[#22C55E]" />
               <div>
                 <p className="text-2xl font-bold text-white">
-                  {orders.filter(o => o.payment_status === 'paid').length}
+                  {visibleOrders.filter(o => o.payment_status === 'paid').length}
                 </p>
                 <p className="text-[#94A3B8] text-sm">Prontos para Download</p>
               </div>
@@ -288,7 +387,7 @@ export default function MinhaContaPage() {
               <CreditCard className="w-8 h-8 text-[#FBBF24]" />
               <div>
                 <p className="text-2xl font-bold text-white">
-                  {formatPrice(orders.reduce((sum, o) => o.payment_status === 'paid' ? sum + o.total_amount : sum, 0))}
+                  {formatPrice(visibleOrders.reduce((sum, o) => o.payment_status === 'paid' ? sum + o.total_amount : sum, 0))}
                 </p>
                 <p className="text-[#94A3B8] text-sm">Total Gasto</p>
               </div>
@@ -297,10 +396,32 @@ export default function MinhaContaPage() {
         </div>
 
         {/* Orders List */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-white mb-4">Histórico de Pedidos</h2>
+        <div>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <h2 className="text-2xl font-bold text-white">Histórico de Pedidos</h2>
+            {visibleOrders.length > 1 && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => scrollOrders("previous")}
+                  className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB]"
+                  aria-label="Pedido anterior"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollOrders("next")}
+                  className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB]"
+                  aria-label="Próximo pedido"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+          </div>
           
-          {orders.length === 0 ? (
+          {visibleOrders.length === 0 ? (
             <div className="text-center py-12 bg-[#0F172A] border border-[#1E293B] rounded-xl">
               <Package className="w-16 h-16 text-[#64748B] mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">Nenhum pedido encontrado</h3>
@@ -316,12 +437,16 @@ export default function MinhaContaPage() {
               </Link>
             </div>
           ) : (
-            orders.map((order) => (
+            <div
+              ref={ordersCarouselRef}
+              className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3"
+            >
+              {visibleOrders.map((order) => (
               <motion.div
                 key={order.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-6"
+                className="w-[88vw] max-w-md shrink-0 snap-start bg-[#0F172A] border border-[#1E293B] rounded-xl p-5"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -346,7 +471,9 @@ export default function MinhaContaPage() {
                   </div>
                   <div>
                     <p className="text-[#64748B]">Imagens</p>
-                    <p className="text-white font-medium">{order.generated_images.length}</p>
+                    <p className="text-white font-medium">
+                      {order.generated_images.filter((image) => !image.indisponivel).length}
+                    </p>
                   </div>
                   <div>
                     <p className="text-[#64748B]">Valor</p>
@@ -358,22 +485,25 @@ export default function MinhaContaPage() {
                   </div>
                 </div>
 
-                {order.payment_status === 'paid' && order.generated_images.length > 0 && (
-                  <div className="flex gap-3 pt-4 border-t border-[#1E293B]">
-                    <button
-                      onClick={() => handleDownloadImages(order)}
-                      className="flex-1 bg-[#22C55E] text-white font-medium py-2 px-4 rounded-lg hover:bg-[#16A34A] transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Baixar Imagens
-                    </button>
-                    <Link
-                      href={`/preview/${order.collectible_id}`}
-                      className="bg-[#2563EB] text-white font-medium py-2 px-4 rounded-lg hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Visualizar
-                    </Link>
+                {order.payment_status === 'paid' && order.generated_images.some((image) => !image.indisponivel) && (
+                  <div className="pt-4 border-t border-[#1E293B]">
+                    <OrderImageCarousel order={order} onImageUnavailable={handleImageUnavailable} />
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleDownloadImages(order)}
+                        className="flex-1 bg-[#22C55E] text-white font-medium py-2 px-4 rounded-lg hover:bg-[#16A34A] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        Baixar Imagens
+                      </button>
+                      <Link
+                        href={`/preview/${order.collectible_id}`}
+                        className="bg-[#2563EB] text-white font-medium py-2 px-4 rounded-lg hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Detalhes
+                      </Link>
+                    </div>
                   </div>
                 )}
 
@@ -385,7 +515,8 @@ export default function MinhaContaPage() {
                   </div>
                 )}
               </motion.div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>

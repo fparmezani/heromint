@@ -1,5 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
+import sharp from "sharp";
 import { uploadImage } from "./cloudinary";
 
 const GENERATED_IMAGES_DIR = path.join(process.cwd(), ".generated-images");
@@ -25,38 +27,137 @@ function getExtension(contentType: string | null, sourceUrl: string) {
   return extension === "jpeg" ? "jpg" : extension || "jpg";
 }
 
-export async function persistGeneratedImage(
-  sourceUrl: string,
-  collectibleId: string,
-  index: number
-): Promise<string> {
-  if (hasCloudinaryConfig()) {
-    try {
-      const persistedImage = await uploadImage(
-        sourceUrl,
-        `heromint/generated/${collectibleId}`
+function escapeSvgText(value: string) {
+  return value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&apos;",
+    };
+    return entities[character];
+  });
+}
+
+function createWatermarkSvg(width: number, height: number, traceId: string) {
+  const watermark = "HEROMINT PREVIEW";
+  const safeTraceId = escapeSvgText(traceId);
+  const tileWidth = Math.max(250, Math.round(width / 2.4));
+  const tileHeight = Math.max(180, Math.round(height / 5));
+  const fontSize = Math.max(28, Math.round(width / 20));
+  const columns = Math.ceil(width / tileWidth) + 2;
+  const rows = Math.ceil(height / tileHeight) + 2;
+  const labels: string[] = [];
+  const diagonals: string[] = [];
+
+  for (let row = -1; row < rows; row++) {
+    for (let column = -1; column < columns; column++) {
+      labels.push(
+        `<text x="${column * tileWidth}" y="${row * tileHeight}" ` +
+        `fill="white" fill-opacity="0.36" font-family="Arial, sans-serif" ` +
+        `font-size="${fontSize}" font-weight="700" letter-spacing="3" ` +
+        `transform="rotate(-25 ${column * tileWidth} ${row * tileHeight})">${watermark}</text>`
       );
-      return persistedImage.url;
-    } catch (error) {
-      console.error("Cloudinary upload failed, using local storage:", error);
     }
   }
 
+  for (let offset = -height; offset < width + height; offset += Math.max(120, Math.round(width / 3))) {
+    diagonals.push(
+      `<line x1="${offset}" y1="0" x2="${offset + height}" y2="${height}" ` +
+      `stroke="#FBBF24" stroke-opacity="0.62" stroke-width="4" stroke-dasharray="10 7"/>`,
+      `<line x1="${offset + height}" y1="0" x2="${offset}" y2="${height}" ` +
+      `stroke="#FBBF24" stroke-opacity="0.62" stroke-width="4" stroke-dasharray="10 7"/>`
+    );
+  }
+
+  return Buffer.from(
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">` +
+    `${diagonals.join("")}${labels.join("")}` +
+    `<text x="50%" y="50%" text-anchor="middle" fill="#FBBF24" fill-opacity="0.9" ` +
+    `stroke="#111827" stroke-width="2" font-family="Arial, sans-serif" ` +
+    `font-size="${Math.max(44, Math.round(width / 8))}" font-weight="800">HEROMINT</text>` +
+    `<text x="50%" y="56%" text-anchor="middle" fill="#FBBF24" fill-opacity="0.9" ` +
+    `stroke="#111827" stroke-width="1" font-family="Arial, sans-serif" ` +
+    `font-size="${Math.max(28, Math.round(width / 14))}" font-weight="800">PREVIEW</text>` +
+    `<rect x="0" y="${height - 78}" width="${width}" height="78" fill="#0F172A" fill-opacity="0.86"/>` +
+    `<text x="50%" y="${height - 45}" text-anchor="middle" fill="white" font-family="Arial, sans-serif" ` +
+    `font-size="${Math.max(17, Math.round(width / 28))}" font-weight="700">PREVIEW ONLY - PURCHASE REQUIRED FOR DOWNLOAD</text>` +
+    `<text x="50%" y="${height - 18}" text-anchor="middle" fill="#FBBF24" font-family="Arial, sans-serif" ` +
+    `font-size="${Math.max(15, Math.round(width / 32))}" font-weight="700">${safeTraceId}</text>` +
+    `</svg>`
+  );
+}
+
+export async function generateProtectedPreview(imageBuffer: Buffer, traceId: string) {
+  const resizedPreview = await sharp(imageBuffer)
+    .resize({ width: 768, height: 1152, fit: "inside", withoutEnlargement: true })
+    .blur(1.1)
+    .toBuffer();
+  const metadata = await sharp(resizedPreview).metadata();
+  const width = metadata.width || 1024;
+  const height = metadata.height || 1536;
+
+  return sharp(resizedPreview)
+    .composite([{ input: createWatermarkSvg(width, height, traceId), top: 0, left: 0 }])
+    .jpeg({ quality: 66, mozjpeg: true })
+    .toBuffer();
+}
+
+export interface PersistedGeneratedImage {
+  imageUrl: string;
+  previewImageUrl: string;
+}
+
+export async function persistGeneratedImage(
+  sourceUrl: string,
+  collectibleId: string,
+  index: number,
+  traceLabel = collectibleId
+): Promise<PersistedGeneratedImage> {
   const response = await fetch(sourceUrl);
   if (!response.ok) {
     throw new Error(`Unable to persist generated image: HTTP ${response.status}`);
   }
 
-  const extension = getExtension(response.headers.get("content-type"), sourceUrl);
-  const filename = `${sanitizeFilename(collectibleId)}_v${index + 1}.${extension}`;
-
-  await mkdir(GENERATED_IMAGES_DIR, { recursive: true });
-  await writeFile(
-    path.join(GENERATED_IMAGES_DIR, filename),
-    Buffer.from(await response.arrayBuffer())
+  const imageBuffer = Buffer.from(await response.arrayBuffer());
+  const previewBuffer = await generateProtectedPreview(
+    imageBuffer,
+    `${traceLabel} - ${collectibleId}`
   );
 
-  return `/api/generated-images/${filename}`;
+  if (hasCloudinaryConfig()) {
+    try {
+      const folder = `heromint/generated/${collectibleId}`;
+      const persistedImage = await uploadImage(
+        `data:${response.headers.get("content-type") || "image/jpeg"};base64,${imageBuffer.toString("base64")}`,
+        folder
+      );
+      const previewImage = await uploadImage(
+        `data:image/jpeg;base64,${previewBuffer.toString("base64")}`,
+        `heromint/generated/${collectibleId}`
+      );
+      return {
+        imageUrl: persistedImage.url,
+        previewImageUrl: previewImage.url,
+      };
+    } catch (error) {
+      console.error("Cloudinary upload failed, using local storage:", error);
+    }
+  }
+
+  const extension = getExtension(response.headers.get("content-type"), sourceUrl);
+  const filename = `${randomBytes(18).toString("hex")}.${extension}`;
+  const previewFilename = `${sanitizeFilename(collectibleId)}_v${index + 1}_preview.jpg`;
+
+  await mkdir(GENERATED_IMAGES_DIR, { recursive: true });
+  await writeFile(path.join(GENERATED_IMAGES_DIR, filename), imageBuffer);
+  await writeFile(path.join(GENERATED_IMAGES_DIR, previewFilename), previewBuffer);
+
+  return {
+    imageUrl: `/api/generated-images/${filename}`,
+    previewImageUrl: `/api/generated-images/${previewFilename}`,
+  };
 }
 
 export function getGeneratedImagesDirectory() {

@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { CardTemplate } from "@/components/preview/CardTemplate";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
-import { getPaymentLink, hasPaymentLink } from "@/lib/payment-config";
+import { hasPaymentLink } from "@/lib/payment-config";
 import { isSandboxEnvironment } from "@/lib/environment";
 // import { useSession, signIn } from "next-auth/react"; // Descomente após instalar next-auth
 
@@ -22,7 +22,7 @@ interface PreviewData {
   photoUrl?: string; // legacy single photo
   photoUrls?: string[]; // new multiple photos
   generatedImageUrl?: string; // from Replicate (may not exist if mock) - backward compatibility
-  generatedImages?: Array<{ imageUrl: string; promptUsed: string; isMock: boolean; templateUsed?: string }>; // multiple images
+  generatedImages?: Array<{ imageUrl: string; previewImageUrl?: string; deliveryToken?: string; promptUsed: string; isMock: boolean; templateUsed?: string }>; // multiple images
   totalGenerated?: number;
   isMock?: boolean;
 }
@@ -40,15 +40,19 @@ export default function PreviewPage() {
   const [userName, setUserName] = useState("");
 
   useEffect(() => {
-    const raw = localStorage.getItem(`heromint_preview_${id}`);
-    if (raw) {
-      try {
-        setData(JSON.parse(raw));
-      } catch {
-        // ignore parse errors
+    const timeoutId = window.setTimeout(() => {
+      const raw = localStorage.getItem(`heromint_preview_${id}`);
+      if (raw) {
+        try {
+          setData(JSON.parse(raw));
+        } catch {
+          // ignore parse errors
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [id]);
 
   const handlePaymentFlow = () => {
@@ -82,6 +86,7 @@ export default function PreviewPage() {
           generatedImages: data.generatedImages?.map(img => ({
             imageUrl: img.imageUrl,
             templateUsed: img.templateUsed,
+            deliveryToken: img.deliveryToken,
           })) || [],
           isDevMode: true,
         }),
@@ -120,6 +125,7 @@ export default function PreviewPage() {
           generatedImages: data.generatedImages?.map(img => ({
             imageUrl: img.imageUrl,
             templateUsed: img.templateUsed,
+            deliveryToken: img.deliveryToken,
           })) || [],
           isDevMode: false,
         }),
@@ -158,10 +164,14 @@ export default function PreviewPage() {
 
   // Carrega dados salvos do usuário
   useEffect(() => {
-    const savedEmail = localStorage.getItem("heromint_user_email");
-    const savedName = localStorage.getItem("heromint_user_name");
-    if (savedEmail) setUserEmail(savedEmail);
-    if (savedName) setUserName(savedName);
+    const timeoutId = window.setTimeout(() => {
+      const savedEmail = localStorage.getItem("heromint_user_email");
+      const savedName = localStorage.getItem("heromint_user_name");
+      if (savedEmail) setUserEmail(savedEmail);
+      if (savedName) setUserName(savedName);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   if (loading) {
@@ -187,6 +197,7 @@ export default function PreviewPage() {
   const hasMultipleImages = data.generatedImages && data.generatedImages.length > 1;
   const currentImage = data.generatedImages?.[selectedImageIndex] || { 
     imageUrl: data.generatedImageUrl, 
+    previewImageUrl: undefined,
     isMock: data.isMock || false,
     templateUsed: data.theme
   };
@@ -272,7 +283,7 @@ export default function PreviewPage() {
               <CardTemplate
                 themeId={currentTemplate}
                 photoUrl={data.photoUrls?.[0] ?? data.photoUrl ?? ""}
-                generatedImageUrl={currentImage.isMock ? undefined : currentImage.imageUrl}
+                generatedImageUrl={currentImage.isMock ? undefined : currentImage.previewImageUrl || currentImage.imageUrl}
                 formData={data.formData}
                 showWatermark={true}
               />

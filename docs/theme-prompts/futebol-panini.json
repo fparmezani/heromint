@@ -1,0 +1,83 @@
+{
+  "slug": "futebol-panini",
+  "theme_name": "Futebol Panini",
+  "style": "classic premium football album sticker inspired by tournament collections",
+  "format": {
+    "orientation": "vertical",
+    "aspect_ratio": "2:3",
+    "resolution": "1024x1536"
+  },
+  "composition": {
+    "background": "vibrant turquoise and teal background with subtle oversized rounded 26 graphic",
+    "portrait": "centered chest-up official player portrait, sober pose, shoulders squared to camera",
+    "border": "thin clean white rounded sticker edge only, no metallic frame",
+    "top_left": {
+      "text": "2026",
+      "style": "small bold white year text, clearly legible"
+    },
+    "top_right": {
+      "icon": "generic white football trophy silhouette",
+      "text": "COPA 2026",
+      "style": "small white uppercase text below the trophy"
+    },
+    "right_side": {
+      "flag": "small circular Brazil-inspired flag",
+      "vertical_text": "BRASIL"
+    }
+  },
+  "player": {
+    "name": "{{NOME}}",
+    "gender": "{{GENERO}}",
+    "country": "{{PAIS}}",
+    "team": "{{TIME}}",
+    "birth_date": "{{DATA_NASCIMENTO}}",
+    "height": "{{ALTURA}}",
+    "weight": "{{PESO}}",
+    "position": "{{POSICAO}}",
+    "jersey": "clean bright yellow Brazil-inspired jersey with green collar and sleeve details, number 10, no brand logo and absolutely no club crest on the uniform",
+    "club_crest": "apply the supplied {{TIME}} crest accurately only beside the team name in the lower information area"
+  },
+  "bottom_panel": {
+    "name": "{{NOME}}",
+    "stats": "{{DATA_NASCIMENTO}} | {{ALTURA}} | {{PESO}}",
+    "team": "{{TIME}}",
+    "team_crest": "use the supplied {{TIME}} crest reference accurately"
+  },
+  "non_negotiable_rules": [
+    "The first reference image is the player identity.",
+    "The second reference image is the exact selected club crest.",
+    "Preserve the player's face, age, hair, skin tone and gender presentation exactly.",
+    "Use the supplied club crest accurately. Do not invent a crest.",
+    "Use the supplied club crest only in the lower information area. Never place it on the player's chest, shirt, sleeves or uniform.",
+    "Do not use a globe, world map, earth icon or planet icon.",
+    "Show a generic white football trophy in the top-right area.",
+    "Show the text 2026 clearly in the top-left area.",
+    "Use the uploaded photo for facial identity only. Do not copy thumbs-up gestures or original hand poses.",
+    "Keep arms and hands outside the visible frame."
+  ],
+  "negative_prompt": [
+    "globe",
+    "earth icon",
+    "world map",
+    "planet icon",
+    "missing year",
+    "missing trophy",
+    "invented club crest",
+    "altered selected club crest",
+    "club crest on jersey",
+    "club crest on player chest",
+    "club crest on sleeves",
+    "club uniform",
+    "Nike logo",
+    "Adidas logo",
+    "Puma logo",
+    "Panini logo",
+    "FIFA logo",
+    "thumbs-up gesture",
+    "visible hands",
+    "distorted face",
+    "extra people",
+    "watermark",
+    "unreadable typography"
+  ]
+}

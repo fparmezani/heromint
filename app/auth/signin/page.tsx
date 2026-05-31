@@ -1,13 +1,13 @@
 "use client";
 
 import { signIn, getSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Shield, Star, Zap } from "lucide-react";
+import { ArrowLeft, Shield, Star, Zap } from "lucide-react";
 import Link from "next/link";
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -25,10 +25,15 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { 
+      const result = await signIn("google", {
         callbackUrl,
-        redirect: true,
+        redirect: false,
       });
+      if (result?.url) {
+        window.location.assign(result.url);
+        return;
+      }
+      throw new Error(result?.error || "Google sign-in URL not returned");
     } catch (error) {
       console.error("Erro no login:", error);
       setIsLoading(false);
@@ -138,5 +143,19 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#334155] border-t-[#2563EB] rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }

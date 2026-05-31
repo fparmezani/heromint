@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle, Download, Mail, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
@@ -37,15 +37,27 @@ export default function EntregaPage() {
   const [error, setError] = useState<string | null>(null);
   const [deliveryCompleted, setDeliveryCompleted] = useState(false);
 
+  // Auto-polling interval reference
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     if (orderId) {
       loadOrderData();
     }
+    
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const loadOrderData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Busca dados do pedido com imagens e usuário
       const { data, error } = await supabase
@@ -69,10 +81,14 @@ export default function EntregaPage() {
 
       // Verifica se o pagamento foi aprovado
       if (data.payment_status !== 'paid') {
-        setError("Pagamento ainda não foi confirmado. Aguarde alguns minutos e tente novamente.");
+        setError("Pagamento ainda não foi confirmado. Aguardando confirmação do Asaas...");
+        // Start polling if payment is still pending
+        startPolling();
         return;
       }
 
+      // Payment confirmed - stop polling and show order
+      stopPolling();
       setOrder({
         ...data,
         user: data.users,
@@ -83,6 +99,56 @@ export default function EntregaPage() {
       setError("Erro ao carregar dados do pedido");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startPolling = () => {
+    // Clear any existing interval
+    stopPolling();
+    
+    // Poll every 5 seconds for up to 5 minutes (60 attempts)
+    let attempts = 0;
+    const maxAttempts = 60;
+    
+    pollingRef.current = setInterval(async () => {
+      attempts++;
+      console.log(`🔄 [POLLING] Checking payment status... Attempt ${attempts}/${maxAttempts}`);
+      
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('payment_status')
+          .eq('id', orderId)
+          .single();
+        
+        if (error) {
+          console.error("Polling error:", error);
+          return;
+        }
+        
+        if (data?.payment_status === 'paid') {
+          console.log("✅ [POLLING] Payment confirmed! Refreshing page...");
+          stopPolling();
+          // Reload full order data
+          loadOrderData();
+          return;
+        }
+        
+        if (attempts >= maxAttempts) {
+          console.log("⏰ [POLLING] Max attempts reached. Stopping.");
+          stopPolling();
+          setError("Pagamento ainda não confirmado após 5 minutos. Verifique na sua conta ou tente novamente.");
+        }
+      } catch (err) {
+        console.error("Polling exception:", err);
+      }
+    }, 5000);
+  };
+
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
     }
   };
 
