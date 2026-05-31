@@ -342,6 +342,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
   const gender = input.formData.genero === "Feminino" ? "woman" : input.formData.genero === "Masculino" ? "man" : "person";
 
   if (theme === "futebol-2026" || theme === "futebol-panini") {
+    const clubCrest = getClubCrestDataUri(input.formData.time);
     const personPhoto = Array.isArray(input.uploadedImageBase64)
       ? input.uploadedImageBase64[0]
       : input.uploadedImageBase64;
@@ -349,22 +350,24 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
     if (!personPhoto) {
       throw new Error(`${theme} requires a person reference photo`);
     }
+    if (!clubCrest) {
+      throw new Error(`Club crest not found for team: ${input.formData.time || "not informed"}`);
+    }
 
     const prompt = theme === "futebol-2026"
       ? buildFootball2026Prompt(input.formData)
       : buildFootballPaniniPrompt(input.formData);
 
-    console.log(`🎨 Using flux-kontext-pro for ${theme}...`);
+    console.log(`🎨 Using google/nano-banana-2 for ${theme}...`);
     const output = await replicate.run(
-      "black-forest-labs/flux-kontext-pro",
+      "google/nano-banana-2",
       {
         input: {
           prompt,
-          input_image: personPhoto,
+          image_input: [personPhoto, clubCrest],
           aspect_ratio: "2:3",
+          resolution: "2K",
           output_format: "jpg",
-          output_quality: 95,
-          safety_tolerance: 2,
         },
       }
     );
