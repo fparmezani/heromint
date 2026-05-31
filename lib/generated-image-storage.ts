@@ -53,6 +53,31 @@ function createWatermarkSvg(width: number, height: number, traceId: string) {
   const rows = Math.ceil(height / tileHeight) + 2;
   const labels: string[] = [];
   const diagonals: string[] = [];
+  const gridLines: string[] = [];
+
+  // Grid pattern — fine crosshatch mesh overlay
+  const gridSpacing = Math.max(40, Math.round(width / 18));
+  for (let gx = 0; gx <= width; gx += gridSpacing) {
+    gridLines.push(
+      `<line x1="${gx}" y1="0" x2="${gx}" y2="${height}" ` +
+      `stroke="white" stroke-opacity="0.08" stroke-width="1"/>`
+    );
+  }
+  for (let gy = 0; gy <= height; gy += gridSpacing) {
+    gridLines.push(
+      `<line x1="0" y1="${gy}" x2="${width}" y2="${gy}" ` +
+      `stroke="white" stroke-opacity="0.08" stroke-width="1"/>`
+    );
+  }
+  // Diagonal crosshatch for extra protection
+  for (let offset = -height; offset < width + height; offset += gridSpacing * 2) {
+    gridLines.push(
+      `<line x1="${offset}" y1="0" x2="${offset + height}" y2="${height}" ` +
+      `stroke="white" stroke-opacity="0.05" stroke-width="1"/>`,
+      `<line x1="${offset + height}" y1="0" x2="${offset}" y2="${height}" ` +
+      `stroke="white" stroke-opacity="0.05" stroke-width="1"/>`
+    );
+  }
 
   for (let row = -1; row < rows; row++) {
     for (let column = -1; column < columns; column++) {
@@ -76,7 +101,7 @@ function createWatermarkSvg(width: number, height: number, traceId: string) {
 
   return Buffer.from(
     `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">` +
-    `${diagonals.join("")}${labels.join("")}` +
+    `${gridLines.join("")}${diagonals.join("")}${labels.join("")}` +
     `<text x="50%" y="50%" text-anchor="middle" fill="#FBBF24" fill-opacity="0.9" ` +
     `stroke="#111827" stroke-width="2" font-family="Arial, sans-serif" ` +
     `font-size="${Math.max(44, Math.round(width / 8))}" font-weight="800">HEROMINT</text>` +

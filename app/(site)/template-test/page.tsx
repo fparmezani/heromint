@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CardTemplate } from "@/components/preview/CardTemplate";
 import { Wand2, Loader2 } from "lucide-react";
 
 const THEMES_LIST = [
+  { id: "futebol-2026", name: "Futebol 2026" },
   { id: "futebol-panini", name: "Futebol Panini" },
   { id: "futebol-familia", name: "Futebol Família" },
-  { id: "futebol-2026", name: "Futebol 2026" },
   { id: "hero-card", name: "Hero Card" },
   { id: "profissional-premium", name: "Profissional Premium" },
   { id: "reino-medieval", name: "Reino Medieval" },
@@ -19,26 +19,46 @@ const THEMES_LIST = [
   { id: "avatar-poster", name: "Avatar/Poster" },
 ];
 
-const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:rgb(100,150,200);stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:rgb(50,100,150);stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='768' fill='url(%23grad)'/%3E%3Ctext x='256' y='384' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3ETemplate Test%3C/text%3E%3C/svg%3E";
-
 export default function TemplateTestPage() {
-  const [selectedTheme, setSelectedTheme] = useState("futebol-panini");
+  const [selectedTheme, setSelectedTheme] = useState("futebol-2026");
   const [photoUrl, setPhotoUrl] = useState("");
   const [genero, setGenero] = useState("Masculino");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [promptUsed, setPromptUsed] = useState("");
 
+  // Auto-load default Fernando template image
+  useEffect(() => {
+    const defaultImagePath = "/ngenerated-images/FERNANDO-TEMPLATE.jpg";
+    const img = new Image();
+    img.onload = () => {
+      // Convert to data URL via canvas
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        setPhotoUrl(canvas.toDataURL("image/jpeg", 0.9));
+        console.log("✅ Imagem padrão FERNANDO-TEMPLATE carregada");
+      }
+    };
+    img.onerror = () => {
+      console.log("⚠️ Imagem padrão não encontrada, aguardando upload manual");
+    };
+    img.src = defaultImagePath;
+  }, []);
+
   const mockFormData = {
-    nome: "BELINHA",
+    nome: "FERNANDO PARMEZANI",
     genero,
     pais: "Brasil",
     posicao: "Atacante",
     numero: "10",
-    time: "Seleção",
-    dataNascimento: "2020-08-04",
-    altura: "1.10",
-    peso: "35",
+    time: "São Paulo",
+    dataNascimento: "1976-08-04",
+    altura: "1.82",
+    peso: "95",
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,10 +66,14 @@ export default function TemplateTestPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoUrl(reader.result as string);
+        const dataUrl = reader.result as string;
+        setPhotoUrl(dataUrl);
+        console.log("✅ Foto carregada:", file.name, dataUrl.substring(0, 60));
       };
       reader.readAsDataURL(file);
     }
+    // Reset input so same file can be selected again
+    e.target.value = "";
   };
 
   const handleGenerate = async () => {
@@ -77,8 +101,8 @@ export default function TemplateTestPage() {
       const firstImage = data.images?.[0];
       console.log("✓ Data recebida:", { total: data.totalGenerated, isMock: firstImage?.isMock, hasImageUrl: !!firstImage?.imageUrl });
 
-      if (firstImage?.imageUrl) {
-        setGeneratedImageUrl(firstImage.imageUrl);
+      if (firstImage?.originalImageUrl || firstImage?.imageUrl) {
+        setGeneratedImageUrl(firstImage.originalImageUrl || firstImage.imageUrl);
         setPromptUsed(firstImage.promptUsed || "");
         console.log("✅ Imagem e prompt carregados");
       } else {
@@ -92,13 +116,12 @@ export default function TemplateTestPage() {
     }
   };
 
-  const displayImage = generatedImageUrl || photoUrl || PLACEHOLDER_IMAGE;
 
   return (
     <div className="min-h-screen bg-[#0F172A] pt-24 pb-16">
       <div className="section-container">
         <h1 className="text-4xl font-bold text-white mb-2">Template Test + Geração</h1>
-        <p className="text-[#94A3B8] mb-8">Teste template com Replicate FLUX Kontext Pro</p>
+        <p className="text-[#94A3B8] mb-8">Teste de geração de imagem — preview bruto sem overlay</p>
 
         {/* Theme selector */}
         <div className="mb-8 flex flex-wrap gap-3">
@@ -133,7 +156,10 @@ export default function TemplateTestPage() {
         {/* Upload section */}
         <div className="mb-8 max-w-md">
           <label className="block text-white font-medium mb-3">Envie sua foto:</label>
-          <div className="border-2 border-dashed border-[#2563EB] rounded-xl p-6 text-center cursor-pointer hover:bg-[#1E293B]/50 transition-colors">
+          <label
+            htmlFor="photo-input"
+            className="block border-2 border-dashed border-[#2563EB] rounded-xl p-6 text-center cursor-pointer hover:bg-[#1E293B]/50 transition-colors"
+          >
             <input
               type="file"
               accept="image/*"
@@ -142,11 +168,19 @@ export default function TemplateTestPage() {
               className="hidden"
               id="photo-input"
             />
-            <label htmlFor="photo-input" className="cursor-pointer">
+            {photoUrl ? (
+              <div className="flex flex-col items-center gap-3">
+                <img
+                  src={photoUrl}
+                  alt="Preview"
+                  className="w-32 h-40 object-cover rounded-lg border border-[#334155]"
+                />
+                <p className="text-green-400 text-sm">✓ Foto carregada</p>
+              </div>
+            ) : (
               <p className="text-[#94A3B8]">Clique para enviar ou arraste uma foto</p>
-              {photoUrl && <p className="text-green-400 text-sm mt-2">✓ Foto enviada</p>}
-            </label>
-          </div>
+            )}
+          </label>
         </div>
 
         {/* Gender selector */}
@@ -184,30 +218,21 @@ export default function TemplateTestPage() {
           </button>
         </div>
 
-        {/* Card preview */}
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        {/* Card preview with template overlay */}
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
           <div className="w-full max-w-sm aspect-[9/11] bg-black rounded-2xl overflow-hidden shadow-2xl">
             <CardTemplate
               themeId={selectedTheme}
-              photoUrl={displayImage}
+              photoUrl={photoUrl}
               generatedImageUrl={generatedImageUrl}
               formData={mockFormData}
               showWatermark={false}
             />
           </div>
-        </div>
 
-        {/* Debug: raw image test */}
-        <div className="mt-12 border-2 border-blue-500 p-4 rounded-lg">
-          <p className="text-white font-bold mb-4">Debug: Raw Image Test</p>
-          <img
-            src={displayImage}
-            alt="debug"
-            style={{ width: '200px', height: '300px', border: '2px solid red' }}
-          />
-          <p className="text-gray-400 text-xs mt-2 break-words">
-            photoUrl={displayImage?.substring(0, 80)}...
-          </p>
+          {generatedImageUrl && (
+            <p className="text-green-400 text-sm">✓ Imagem gerada pela IA</p>
+          )}
         </div>
 
         {/* Info */}
@@ -230,7 +255,7 @@ export default function TemplateTestPage() {
               </p>
             </div>
             <p className="text-[#64748B] text-xs mt-3">
-              Este é o prompt que será enviado ao FLUX Kontext Pro para gerar a imagem real após pagamento
+              Este é o prompt enviado ao modelo de geração de imagem
             </p>
           </div>
         )}

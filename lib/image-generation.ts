@@ -1,7 +1,7 @@
 
 import Replicate from "replicate";
 import { generateCustomizedPrompt } from "./claude-vision-prompt";
-import { buildFootball2026Prompt, getClubCrestDataUri } from "./football-2026-prompt";
+import { buildFootball2026Prompt, buildFootball2026PromptForKontext, getClubCrestDataUri } from "./football-2026-prompt";
 import { buildFootballFamilyPrompt } from "./football-family-prompt";
 import { buildFootballPaniniPrompt } from "./football-panini-prompt";
 
@@ -341,7 +341,39 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
   const theme = input.theme;
   const gender = input.formData.genero === "Feminino" ? "woman" : input.formData.genero === "Masculino" ? "man" : "person";
 
-  if (theme === "futebol-2026" || theme === "futebol-panini") {
+  if (theme === "futebol-2026") {
+    const personPhoto = Array.isArray(input.uploadedImageBase64)
+      ? input.uploadedImageBase64[0]
+      : input.uploadedImageBase64;
+
+    if (!personPhoto) {
+      throw new Error(`${theme} requires a person reference photo`);
+    }
+
+    // Use google/nano-banana-2 with ONLY person photo (no crest reference)
+    // The crest will be added programmatically in the CardTemplate
+    const prompt = buildFootball2026Prompt(input.formData);
+
+    console.log(`🎨 Using google/nano-banana-2 for ${theme} (person photo only, no crest ref)...`);
+    const output = await replicate.run(
+      "google/nano-banana-2",
+      {
+        input: {
+          prompt,
+          image_input: [personPhoto],
+          aspect_ratio: "2:3",
+          resolution: "2K",
+          output_format: "jpg",
+        },
+      }
+    );
+
+    const imageUrl = Array.isArray(output) ? String(output[0]) : String(output);
+    console.log(`✅ ${theme} image generated with google/nano-banana-2`);
+    return { imageUrl, promptUsed: prompt, isMock: false };
+  }
+
+  if (theme === "futebol-panini") {
     const clubCrest = getClubCrestDataUri(input.formData.time);
     const personPhoto = Array.isArray(input.uploadedImageBase64)
       ? input.uploadedImageBase64[0]
@@ -354,9 +386,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
       throw new Error(`Club crest not found for team: ${input.formData.time || "not informed"}`);
     }
 
-    const prompt = theme === "futebol-2026"
-      ? buildFootball2026Prompt(input.formData)
-      : buildFootballPaniniPrompt(input.formData);
+    const prompt = buildFootballPaniniPrompt(input.formData);
 
     console.log(`🎨 Using google/nano-banana-2 for ${theme}...`);
     const output = await replicate.run(

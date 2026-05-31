@@ -22,7 +22,7 @@ interface PreviewData {
   photoUrl?: string; // legacy single photo
   photoUrls?: string[]; // new multiple photos
   generatedImageUrl?: string; // from Replicate (may not exist if mock) - backward compatibility
-  generatedImages?: Array<{ imageUrl: string; previewImageUrl?: string; deliveryToken?: string; promptUsed: string; isMock: boolean; templateUsed?: string }>; // multiple images
+  generatedImages?: Array<{ imageUrl: string; previewImageUrl?: string; originalImageUrl?: string; deliveryToken?: string; promptUsed: string; isMock: boolean; templateUsed?: string }>; // multiple images
   totalGenerated?: number;
   isMock?: boolean;
 }
@@ -209,6 +209,7 @@ export default function PreviewPage() {
   const currentImage = data.generatedImages?.[selectedImageIndex] || { 
     imageUrl: data.generatedImageUrl, 
     previewImageUrl: undefined,
+    originalImageUrl: data.generatedImageUrl,
     isMock: data.isMock || false,
     templateUsed: data.theme
   };
@@ -294,7 +295,7 @@ export default function PreviewPage() {
               <CardTemplate
                 themeId={currentTemplate}
                 photoUrl={data.photoUrls?.[0] ?? data.photoUrl ?? ""}
-                generatedImageUrl={currentImage.isMock ? undefined : currentImage.previewImageUrl || currentImage.imageUrl}
+                generatedImageUrl={currentImage.isMock ? undefined : currentImage.originalImageUrl || currentImage.imageUrl}
                 formData={data.formData}
                 showWatermark={!shouldBypassWatermark()}
               />

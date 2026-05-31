@@ -5,6 +5,7 @@ import {
 } from "@/lib/image-generation";
 import { persistGeneratedImage } from "@/lib/generated-image-storage";
 import { createGeneratedImageToken } from "@/lib/generated-image-token";
+import { shouldBypassWatermark } from "@/lib/environment";
 import { hasClubCrest } from "@/lib/football-2026-prompt";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
@@ -87,10 +88,26 @@ export async function POST(request: NextRequest) {
       formData.nomeFamilia ||
       formData.nomeJogador1 ||
       "HeroMint";
+    const bypassWatermark = shouldBypassWatermark();
+
     const images = await Promise.all(
       result.images.map(async (image, index) => {
         if (image.isMock) {
           return image;
+        }
+
+        // Skip watermark/persist in sandbox/test mode
+        if (bypassWatermark) {
+          return {
+            ...image,
+            imageUrl: image.imageUrl,
+            previewImageUrl: image.imageUrl,
+            originalImageUrl: image.imageUrl,
+            deliveryToken: createGeneratedImageToken({
+              collectibleId,
+              imageUrl: image.imageUrl,
+            }),
+          };
         }
 
         try {
@@ -104,6 +121,7 @@ export async function POST(request: NextRequest) {
             ...image,
             imageUrl: persistedImage.previewImageUrl,
             previewImageUrl: persistedImage.previewImageUrl,
+            originalImageUrl: image.imageUrl,
             deliveryToken: createGeneratedImageToken({
               collectibleId,
               imageUrl: persistedImage.imageUrl,

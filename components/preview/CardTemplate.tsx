@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { WatermarkOverlay } from "./WatermarkOverlay";
 import { shouldBypassWatermark } from "@/lib/environment";
+import { getClubCrestDataUri } from "@/lib/football-2026-prompt";
 
 interface CardTemplateProps {
   themeId: string;
@@ -98,26 +99,250 @@ function Corners({ color }: { color: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. FUTEBOL 2026
+// 1. FUTEBOL 2026 — Premium Football Card Frame (ChatGPT template)
 // ─────────────────────────────────────────────────────────────────────────────
 function FutebolCard({
   photoUrl,
+  f,
 }: {
   photoUrl: string;
+  f: Record<string, string>;
 }) {
+  const crestUri = getClubCrestDataUri(f?.time);
+  const nome = f?.nome || "JOGADOR";
+  const stats = [
+    f?.dataNascimento,
+    f?.altura ? `${f.altura}m` : null,
+    f?.peso ? `${f.peso} kg` : null,
+  ].filter(Boolean).join(" | ");
+
   return (
-    <img
-      src={photoUrl}
-      alt=""
+    <div
       style={{
+        position: "relative",
         width: "100%",
         height: "100%",
-        objectFit: "cover",
-        objectPosition: "top",
-        display: "block",
-        borderRadius: 0,
+        overflow: "hidden",
+        background: "#0B1120",
+        borderRadius: 16,
       }}
-    />
+    >
+      {/* Outer gold frame */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 16,
+          border: "4px solid #D4AF37",
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1), 0 0 30px rgba(212,175,55,0.15)",
+          zIndex: 10,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Inner gold frame */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          right: 10,
+          bottom: 10,
+          borderRadius: 10,
+          border: "1.5px solid rgba(212,175,55,0.5)",
+          zIndex: 10,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Corner ornaments */}
+      <CornerOrnament position="top-left" />
+      <CornerOrnament position="top-right" />
+      <CornerOrnament position="bottom-left" />
+      <CornerOrnament position="bottom-right" />
+
+      {/* Full background player image — fills entire card */}
+      <img
+        src={photoUrl}
+        alt=""
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center 15%",
+          display: "block",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Bottom nameplate panel */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "3%",
+          left: "8%",
+          right: "8%",
+          zIndex: 20,
+        }}
+      >
+        {/* Nameplate plate */}
+        <div
+          style={{
+            background: "linear-gradient(180deg, #0F172A 0%, #0B1120 100%)",
+            borderRadius: 10,
+            border: "2px solid #D4AF37",
+            borderTop: "2.5px solid #D4AF37",
+            padding: "8px 12px 6px",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+          }}
+        >
+          {/* Name */}
+          <p
+            style={{
+              color: "white",
+              fontWeight: 800,
+              fontSize: "clamp(12px, 4vw, 16px)",
+              margin: "0 0 4px",
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              fontFamily: "system-ui, -apple-system, Segoe UI, Arial, sans-serif",
+              textAlign: "center",
+              textShadow: "0 2px 6px rgba(0,0,0,0.8)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {nome}
+          </p>
+
+          {/* Gold separator */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              margin: "0 0 4px",
+            }}
+          >
+            <div style={{ width: 4, height: 4, background: "#D4AF37", transform: "rotate(45deg)" }} />
+            <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
+            <div style={{ width: 4, height: 4, background: "#D4AF37", transform: "rotate(45deg)" }} />
+          </div>
+
+          {/* Stats */}
+          {stats && (
+            <p
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                fontSize: 10,
+                margin: "0 0 6px",
+                fontWeight: 500,
+                textAlign: "center",
+                letterSpacing: 0.5,
+              }}
+            >
+              {stats}
+            </p>
+          )}
+
+          {/* Bottom row: crest | team name | star */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingTop: 4,
+              borderTop: "1px solid rgba(212,175,55,0.2)",
+            }}
+          >
+            {/* Club crest left */}
+            {crestUri ? (
+              <img
+                src={crestUri}
+                alt={f?.time || ""}
+                style={{
+                  width: 28,
+                  height: 28,
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
+                }}
+              />
+            ) : (
+              <div style={{ width: 28 }} />
+            )}
+
+            {/* Team name center */}
+            <span
+              style={{
+                color: "#D4AF37",
+                fontWeight: 700,
+                fontSize: 12,
+                letterSpacing: 1.5,
+                textTransform: "uppercase",
+                textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+              }}
+            >
+              {f?.time || ""}
+            </span>
+
+            {/* Gold star right */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#D4AF37">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Corner ornament component
+function CornerOrnament({ position }: { position: "top-left" | "top-right" | "bottom-left" | "bottom-right" }) {
+  const isTop = position.startsWith("top");
+  const isLeft = position.endsWith("left");
+  const top = isTop ? 12 : undefined;
+  const bottom = !isTop ? 12 : undefined;
+  const left = isLeft ? 12 : undefined;
+  const right = !isLeft ? 12 : undefined;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top,
+        bottom,
+        left,
+        right,
+        zIndex: 15,
+        pointerEvents: "none",
+      }}
+    >
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path
+          d={isTop
+            ? isLeft
+              ? "M2 26 L2 8 Q2 2 8 2 L26 2"
+              : "M26 26 L26 8 Q26 2 20 2 L2 2"
+            : isLeft
+              ? "M2 2 L2 20 Q2 26 8 26 L26 26"
+              : "M26 2 L26 20 Q26 26 20 26 L2 26"}
+          stroke="#D4AF37"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <circle
+          cx={isLeft ? 6 : 22}
+          cy={isTop ? 6 : 22}
+          r="3"
+          fill="#D4AF37"
+        />
+      </svg>
+    </div>
   );
 }
 
@@ -2521,7 +2746,7 @@ export function CardTemplate({
   }, [shouldShowWatermark]);
 
   const inner = ({
-    "futebol-2026": <FutebolCard photoUrl={effectivePhoto} />,
+    "futebol-2026": <FutebolCard photoUrl={effectivePhoto} f={f} />,
     "futebol-panini": <FutebolPaniniCard photoUrl={effectivePhoto} f={f} />,
     "futebol-familia": (
       <div className="w-full">
@@ -2538,7 +2763,7 @@ export function CardTemplate({
     "battle-card": <BattleCard photoUrl={effectivePhoto} f={f} />,
     "avatar-poster": <AvatarPosterCard photoUrl={effectivePhoto} f={f} />,
   } as Record<string, React.ReactNode>)[themeId] ?? (
-    <FutebolCard photoUrl={effectivePhoto} />
+    <FutebolCard photoUrl={effectivePhoto} f={f} />
   );
 
   const isLandscape = themeId === "futebol-familia";
