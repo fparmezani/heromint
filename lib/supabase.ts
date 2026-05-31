@@ -188,3 +188,31 @@ export async function markGeneratedImageUnavailable(imageId: string) {
   if (error) throw error;
   return data;
 }
+
+// Upload image to Supabase Storage
+export async function uploadImageToStorage(
+  bucket: string,
+  path: string,
+  fileBuffer: Buffer,
+  contentType: string = "image/jpeg"
+): Promise<{ publicUrl: string }> {
+  const { error } = await supabaseAdmin
+    .storage
+    .from(bucket)
+    .upload(path, fileBuffer, {
+      contentType,
+      upsert: true,
+    });
+
+  if (error) {
+    console.error("[SUPABASE STORAGE] Upload error:", error);
+    throw new Error(`Failed to upload image: ${error.message}`);
+  }
+
+  const { data: publicUrlData } = supabaseAdmin
+    .storage
+    .from(bucket)
+    .getPublicUrl(path);
+
+  return { publicUrl: publicUrlData.publicUrl };
+}

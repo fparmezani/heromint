@@ -1,16 +1,19 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { randomBytes } from "node:crypto";
-import path from "node:path";
 import sharp from "sharp";
 import { uploadImage } from "./cloudinary";
-
-const GENERATED_IMAGES_DIR = path.join(process.cwd(), ".generated-images");
+import { uploadImageToStorage } from "./supabase";
 
 function hasCloudinaryConfig() {
   return Boolean(
     process.env.CLOUDINARY_CLOUD_NAME?.trim() &&
     process.env.CLOUDINARY_API_KEY?.trim() &&
     process.env.CLOUDINARY_API_SECRET?.trim()
+  );
+}
+
+function hasSupabaseStorageConfig() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+    (process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim())
   );
 }
 
@@ -142,24 +145,31 @@ export async function persistGeneratedImage(
         previewImageUrl: previewImage.url,
       };
     } catch (error) {
-      console.error("Cloudinary upload failed, using local storage:", error);
+      console.error("Cloudinary upload failed, trying Supabase Storage:", error);
     }
   }
 
-  const extension = getExtension(response.headers.get("content-type"), sourceUrl);
-  const filename = `${randomBytes(18).toString("hex")}.${extension}`;
-  const previewFilename = `${sanitizeFilename(collectibleId)}_v${index + 1}_preview.jpg`;
+  // Fallback: Supabase Storage (works on Vercel serverless)
+  if (hasSupabaseStorageConfig()) {
+    try {
+      const ext = getExtension(response.headers.get("content-type"), sourceUrl);
+      const filename = `${sanitizeFilename(collectibleId)}_v${index + 1}.${ext}`;
+      const previewFilename = `${sanitizeFilename(collectibleId)}_v${index + 1}_preview.jpg`;
+      const contentType = response.headers.get("content-type") || "image/jpeg";
 
-  await mkdir(GENERATED_IMAGES_DIR, { recursive: true });
-  await writeFile(path.join(GENERATED_IMAGES_DIR, filename), imageBuffer);
-  await writeFile(path.join(GENERATED_IMAGES_DIR, previewFilename), previewBuffer);
+      const [originalResult, previewResult] = await Promise.all([
+        uploadImageToStorage("generated-images", filename, imageBuffer, contentType),
+        uploadImageToStorage("generated-images", previewFilename, previewBuffer, "image/jpeg"),
+      ]);
 
-  return {
-    imageUrl: `/api/generated-images/${filename}`,
-    previewImageUrl: `/api/generated-images/${previewFilename}`,
-  };
-}
+      return {
+        imageUrl: originalResult.publicUrl,
+        previewImageUrl: previewResult.publicUrl,
+      };
+    } catch (error) {
+      console.error("Supabase Storage upload failed:", error);
+    }
+  }
 
-export function getGeneratedImagesDirectory() {
-  return GENERATED_IMAGES_DIR;
+  throw new Error("No storage provider configured. Please set up Cloudinary or Supabase Storage.");
 }
