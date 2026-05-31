@@ -27,6 +27,13 @@ LAYOUT:
 - Stats: "{{DATA_NASCIMENTO}} | {{ALTURA}} | {{PESO}}".
 - Team: "{{TIME}}" beside the supplied crest.
 
+CRITICAL - NO WATERMARK OR OVERLAY TEXT:
+- ABSOLUTELY NO watermark text, NO "PREVIEW" text, NO "HEROMINT" text, NO "SAMPLE" text, NO "DEMO" text.
+- NO "PURCHASE REQUIRED" text, NO "DOWNLOAD" text, NO "FOR SALE" text, NO commercial overlay text of any kind.
+- NO semi-transparent text overlay, NO diagonal repeated text, NO stamped text, NO sample markings.
+- The image must be a clean final card artwork with only the layout elements described above.
+- If any watermark-like text appears, remove it completely.
+
 AVOID:
 - Club crest on the jersey, club crest on the player's chest, club crest on sleeves, invented or altered club crest, additional club logos, club uniform, unrelated copyrighted logos.
 - FIFA, Panini, Nike, Adidas or Puma logos.

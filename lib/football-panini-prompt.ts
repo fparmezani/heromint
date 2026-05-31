@@ -20,6 +20,11 @@ LAYOUT:
 - Right side: small circular Brazil-inspired flag and vertical text "BRASIL".
 - Bottom panel: player "{{NOME}}", stats "{{DATA_NASCIMENTO}} | {{ALTURA}} | {{PESO}}", team "{{TIME}}" and supplied crest.
 
+CRITICAL - NO WATERMARK OR OVERLAY TEXT:
+- ABSOLUTELY NO "PREVIEW" text, NO "HEROMINT" text, NO "SAMPLE" text, NO "DEMO" text, NO watermark of any kind.
+- NO commercial overlay text, NO purchase-required text, NO download text.
+- The image must be clean final artwork.
+
 AVOID:
 - Globe, earth icon, world map, planet icon, missing year, missing trophy.
 - Club crest on the jersey, club crest on the player's chest, club crest on sleeves, invented or altered club crest, club uniform, Nike, Adidas, Puma, Panini or FIFA logos.

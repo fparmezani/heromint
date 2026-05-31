@@ -9,7 +9,7 @@ import { CardTemplate } from "@/components/preview/CardTemplate";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 import { hasPaymentLink } from "@/lib/payment-config";
-import { isSandboxEnvironment } from "@/lib/environment";
+import { isSandboxEnvironment, shouldBypassWatermark } from "@/lib/environment";
 // import { useSession, signIn } from "next-auth/react"; // Descomente após instalar next-auth
 
 interface PreviewData {
@@ -285,7 +285,7 @@ export default function PreviewPage() {
                 photoUrl={data.photoUrls?.[0] ?? data.photoUrl ?? ""}
                 generatedImageUrl={currentImage.isMock ? undefined : currentImage.previewImageUrl || currentImage.imageUrl}
                 formData={data.formData}
-                showWatermark={true}
+                showWatermark={!shouldBypassWatermark()}
               />
             </div>
 
