@@ -173,3 +173,9 @@ export async function persistGeneratedImage(
 
   throw new Error("No storage provider configured. Please set up Cloudinary or Supabase Storage.");
 }
+
+// Backwards compatibility - local filesystem is not used on Vercel serverless
+// Images are now served directly from Supabase Storage or Cloudinary
+export function getGeneratedImagesDirectory() {
+  return "";
+}

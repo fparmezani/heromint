@@ -1,6 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { getGeneratedImagesDirectory } from "@/lib/generated-image-storage";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 function getContentType(filename: string) {
   if (filename.endsWith(".png")) return "image/png";
@@ -14,22 +15,23 @@ export async function GET(
   { params }: RouteContext<"/api/generated-images/[filename]">
 ) {
   const { filename } = await params;
-  const safeFilename = path.basename(filename);
 
-  if (safeFilename !== filename) {
-    return Response.json({ error: "Invalid filename" }, { status: 400 });
-  }
+  // Serve from Supabase Storage
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { data: blob, error } = await supabase
+    .storage
+    .from("generated-images")
+    .download(filename);
 
-  try {
-    const data = await readFile(path.join(getGeneratedImagesDirectory(), safeFilename));
-    const responseData = Uint8Array.from(data).buffer;
-    return new Response(responseData, {
-      headers: {
-        "Content-Type": getContentType(safeFilename),
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
-  } catch {
+  if (error || !blob) {
     return Response.json({ error: "Image not found" }, { status: 404 });
   }
+
+  const arrayBuffer = await blob.arrayBuffer();
+  return new Response(arrayBuffer, {
+    headers: {
+      "Content-Type": getContentType(filename),
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
 }
