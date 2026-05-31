@@ -139,6 +139,31 @@ export default function MinhaContaPage() {
     }
   }, [session]);
 
+  // Polling para pedidos pendentes
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startPolling = useCallback(() => {
+    if (pollingRef.current) return;
+    
+    pollingRef.current = setInterval(async () => {
+      if (!user?.id) return;
+      
+      try {
+        const userOrders = await getUserOrders(user.id);
+        setOrders(userOrders);
+        
+        // Para polling se não houver pedidos pendentes
+        const hasPending = userOrders.some(o => o.payment_status === 'pending');
+        if (!hasPending && pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar pedidos:", error);
+      }
+    }, 5000);
+  }, [user?.id]);
+
   useEffect(() => {
     if (status !== "authenticated" || !email || isLoggedIn || loading) return;
 
@@ -148,6 +173,33 @@ export default function MinhaContaPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [email, isLoggedIn, loadAccount, loading, status]);
+
+  // Inicia polling quando houver pedidos pendentes
+  useEffect(() => {
+    const hasPending = orders.some(o => o.payment_status === 'pending');
+    if (hasPending && isLoggedIn) {
+      startPolling();
+    }
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [orders, isLoggedIn, startPolling]);
+
+  const handleRefreshOrders = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const userOrders = await getUserOrders(user.id);
+      setOrders(userOrders);
+    } catch (error) {
+      console.error("Erro ao atualizar:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDownloadImages = async (order: OrderWithImages) => {
     const availableImages = order.generated_images.filter((image) => !image.indisponivel);
@@ -399,26 +451,38 @@ export default function MinhaContaPage() {
         <div>
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 className="text-2xl font-bold text-white">Histórico de Pedidos</h2>
-            {visibleOrders.length > 1 && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => scrollOrders("previous")}
-                  className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB]"
-                  aria-label="Pedido anterior"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollOrders("next")}
-                  className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB]"
-                  aria-label="Próximo pedido"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleRefreshOrders}
+                disabled={loading}
+                className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB] disabled:opacity-50"
+                aria-label="Atualizar pedidos"
+                title="Atualizar pedidos"
+              >
+                <Loader2 className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              {visibleOrders.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => scrollOrders("previous")}
+                    className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB]"
+                    aria-label="Pedido anterior"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollOrders("next")}
+                    className="rounded-full border border-[#1E293B] bg-[#0F172A] p-2 text-white transition-colors hover:border-[#2563EB]"
+                    aria-label="Próximo pedido"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           
           {visibleOrders.length === 0 ? (
@@ -509,9 +573,16 @@ export default function MinhaContaPage() {
 
                 {order.payment_status === 'pending' && (
                   <div className="pt-4 border-t border-[#1E293B]">
-                    <p className="text-[#FBBF24] text-sm">
+                    <p className="text-[#FBBF24] text-sm mb-3">
                       ⏳ Aguardando confirmação do pagamento
                     </p>
+                    <Link
+                      href={`/entrega/${order.id}`}
+                      className="w-full bg-[#22C55E] text-white font-medium py-2 px-4 rounded-lg hover:bg-[#16A34A] transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Verificar Pagamento
+                    </Link>
                   </div>
                 )}
               </motion.div>
