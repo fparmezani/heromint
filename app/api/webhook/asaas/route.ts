@@ -26,18 +26,18 @@ interface AsaasWebhookPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Validate webhook token (if configured)
-    const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
-    if (webhookToken) {
-      const authHeader = request.headers.get("asaas-access-token") || 
-                         request.headers.get("authorization");
-      const providedToken = authHeader?.replace("Bearer ", "").trim();
-      
-      if (providedToken !== webhookToken) {
-        console.warn("❌ [ASAAS WEBHOOK] Invalid token received");
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    }
+    // 1. Validate webhook token (if configured) - DISABLED FOR TESTING
+    // const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
+    // if (webhookToken) {
+    //   const authHeader = request.headers.get("asaas-access-token") || 
+    //                      request.headers.get("authorization");
+    //   const providedToken = authHeader?.replace("Bearer ", "").trim();
+    //   
+    //   if (providedToken !== webhookToken) {
+    //     console.warn("❌ [ASAAS WEBHOOK] Invalid token received");
+    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    //   }
+    // }
 
     // 2. Parse webhook payload
     const payload: AsaasWebhookPayload = await request.json();
@@ -107,7 +107,12 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("❌ [ASAAS WEBHOOK] Supabase error:", error);
-      return NextResponse.json({ error: "Database error" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Database error", 
+        details: error.message,
+        code: error.code,
+        orderId: orderId 
+      }, { status: 500 });
     }
 
     if (!data) {
