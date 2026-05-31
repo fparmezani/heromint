@@ -163,19 +163,21 @@ export async function POST(request: NextRequest) {
 }
 
 function getPaymentUrl(packageType: string, orderId: string): string {
-  // Aqui você pode adicionar parâmetros para identificar o pedido no callback
   const baseUrls: Record<string, string> = {
     individual: "https://www.asaas.com/c/60vtiurluc6gmh3w",
     premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
     completo: "https://www.asaas.com/c/completo-10-images", // TODO: Criar link
     "futebol-familia": "https://www.asaas.com/c/hmcve2c357wghwb7",
   };
-  
+
   const baseUrl = baseUrls[packageType];
   if (!baseUrl) {
     throw new Error("Link de pagamento não configurado para este pacote");
   }
-  
-  // Adiciona parâmetros para rastreamento (se o Asaas suportar)
-  return `${baseUrl}?order_id=${orderId}`;
+
+  // URL para retornar ao site após pagamento
+  const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://heromint.vercel.app"}/entrega/${orderId}`;
+
+  // Asaas usa 'callback' para redirecionar após pagamento
+  return `${baseUrl}?callback=${encodeURIComponent(callbackUrl)}&order_id=${orderId}`;
 }

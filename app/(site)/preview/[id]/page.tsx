@@ -134,8 +134,8 @@ export default function PreviewPage() {
       const result = await response.json();
       
       if (result.success) {
-        // Redireciona para pagamento real
-        window.open(result.order.payment_url, '_blank');
+        // Redireciona para pagamento real (mesma aba, Asaas retorna ao callback)
+        window.location.href = result.order.payment_url;
       } else {
         alert('Erro no processamento: ' + result.error);
       }
@@ -312,6 +312,9 @@ export default function PreviewPage() {
                 <div className="mt-3 p-3 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg">
                   <p className="text-[#22C55E] text-sm font-medium">
                     ✅ Pagamento disponível! Clique no botão abaixo para finalizar.
+                  </p>
+                  <p className="text-[#94A3B8] text-xs mt-1">
+                    Você será redirecionado ao Asaas e retornará automaticamente aqui após o pagamento.
                   </p>
                 </div>
               )}
