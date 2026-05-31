@@ -102,8 +102,7 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", orderId)
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error("❌ [ASAAS WEBHOOK] Supabase error:", error);
@@ -115,12 +114,13 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       console.warn(`⚠️ [ASAAS WEBHOOK] Order ${orderId} not found in database`);
       return NextResponse.json({ 
         received: true, 
         processed: false, 
-        reason: "Order not found" 
+        reason: "Order not found",
+        orderId: orderId
       });
     }
 
