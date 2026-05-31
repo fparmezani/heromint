@@ -1,15 +1,46 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+function createMockClient(): SupabaseClient {
+  return new Proxy({} as SupabaseClient, {
+    get(_target, prop) {
+      if (prop === 'from') {
+        return () => ({
+          select: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          insert: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          update: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          upsert: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          delete: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          eq: () => ({ select: () => ({ data: null, error: null }) }),
+        });
+      }
+      if (prop === 'storage') {
+        return {
+          from: () => ({
+            upload: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            download: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            getPublicUrl: () => ({ data: { publicUrl: '' } }),
+          }),
+        };
+      }
+      return () => ({ data: null, error: { message: 'Supabase not configured' } });
+    },
+  });
+}
+
+export const supabase = supabaseUrl && supabasePublishableKey
+  ? createClient(supabaseUrl, supabasePublishableKey)
+  : createMockClient();
 
 // Cliente para uso no servidor (com service role key)
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || supabasePublishableKey
-);
+export const supabaseAdmin = supabaseUrl && supabasePublishableKey
+  ? createClient(
+      supabaseUrl,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || supabasePublishableKey
+    )
+  : createMockClient();
 
 // Tipos do banco de dados
 export interface User {
