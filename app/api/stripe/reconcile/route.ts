@@ -20,12 +20,21 @@ export async function POST() {
     });
 
     let confirmedOrders = 0;
+    let failedSessions = 0;
     for (const checkoutSession of checkoutSessions.data) {
-      const orderId = await confirmOrderFromStripeSession(checkoutSession);
-      if (orderId) confirmedOrders += 1;
+      try {
+        const orderId = await confirmOrderFromStripeSession(checkoutSession);
+        if (orderId) confirmedOrders += 1;
+      } catch (error) {
+        failedSessions += 1;
+        console.error(
+          `[STRIPE RECONCILE] Failed session ${checkoutSession.id}:`,
+          error
+        );
+      }
     }
 
-    return NextResponse.json({ success: true, confirmedOrders });
+    return NextResponse.json({ success: true, confirmedOrders, failedSessions });
   } catch (error) {
     console.error("[STRIPE RECONCILE] Error:", error);
     return NextResponse.json({ error: "Erro ao verificar pagamentos" }, { status: 500 });

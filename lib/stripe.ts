@@ -1,9 +1,9 @@
 import Stripe from "stripe";
 
 export function getStripe(): Stripe {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const secretKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY;
   if (!secretKey) {
-    throw new Error("STRIPE_SECRET_KEY is not set");
+    throw new Error("STRIPE_SECRET_KEY or STRIPE_API_KEY is not set");
   }
 
   return new Stripe(secretKey);
