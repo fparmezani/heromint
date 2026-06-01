@@ -406,6 +406,10 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
     }
 
     const prompt = buildFootballPaniniPrompt(input.formData);
+    const uploadedReferences = await uploadReplicateReferences(
+      [personPhoto, clubCrest],
+      theme
+    );
 
     console.log(`🎨 Using google/nano-banana-2 for ${theme}...`);
     const output = await replicate.run(
@@ -413,7 +417,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
       {
         input: {
           prompt,
-          image_input: [personPhoto, clubCrest],
+          image_input: uploadedReferences,
           aspect_ratio: "2:3",
           resolution: "2K",
           output_format: "jpg",
@@ -494,6 +498,7 @@ export async function generateFamilyImage(
   console.log(`👨‍👩‍👧‍👦 Generating family image with ${inputImages.length} reference photos...`);
 
   const prompt = buildFootballFamilyPrompt(input.formData, inputImages.length, background, outfit);
+  const uploadedReferences = await uploadReplicateReferences(inputImages, input.theme);
 
   console.log("🎨 Sending separate family references to google/nano-banana-2...");
 
@@ -502,7 +507,7 @@ export async function generateFamilyImage(
     {
       input: {
         prompt,
-        image_input: inputImages,
+        image_input: uploadedReferences,
         aspect_ratio: "2:3",
         resolution: "2K",
         output_format: "jpg",
