@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
           const isRenderedCard = imageData.templateUsed === "futebol-2026";
           return {
             data,
-            filename: `${sanitizeFilename(themeName)}_v${index + 1}_${sanitizeFilename(imageData.templateUsed || "card")}.${isRenderedCard ? "jpg" : fileInfo.extension}`,
-            contentType: isRenderedCard ? "image/jpeg" : fileInfo.contentType,
+            filename: `${sanitizeFilename(themeName)}_v${index + 1}_${sanitizeFilename(imageData.templateUsed || "card")}.${isRenderedCard ? "png" : fileInfo.extension}`,
+            contentType: isRenderedCard ? "image/png" : fileInfo.contentType,
             templateUsed: imageData.templateUsed,
           };
         } catch (error) {

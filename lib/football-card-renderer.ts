@@ -1,8 +1,8 @@
 import sharp from "sharp";
 import { getClubCrestDataUri } from "@/lib/football-2026-prompt";
 
-const CARD_WIDTH = 1024;
-const CARD_HEIGHT = 1536;
+const CARD_WIDTH = 2048;
+const CARD_HEIGHT = 3072;
 
 function escapeSvgText(value: string) {
   return value.replace(/[&<>"']/g, (character) => {
@@ -50,7 +50,7 @@ function createFootball2026Overlay(formData: Record<string, string>) {
   const countryCode = escapeSvgText(getCountryCode(formData.pais));
 
   return Buffer.from(`
-    <svg width="${CARD_WIDTH}" height="${CARD_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <svg width="${CARD_WIDTH}" height="${CARD_HEIGHT}" viewBox="0 0 1024 1536" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#0F172A"/>
@@ -105,15 +105,15 @@ export async function renderFinalCard(
 
   if (crestBuffer) {
     composites.push({
-      input: await sharp(crestBuffer).resize(92, 92, { fit: "contain" }).png().toBuffer(),
-      top: 1382,
-      left: 115,
+      input: await sharp(crestBuffer).resize(184, 184, { fit: "contain" }).png().toBuffer(),
+      top: 2764,
+      left: 230,
     });
   }
 
   return sharp(imageBuffer)
     .resize(CARD_WIDTH, CARD_HEIGHT, { fit: "cover", position: "centre" })
     .composite(composites)
-    .jpeg({ quality: 94, mozjpeg: true })
+    .png({ compressionLevel: 6, adaptiveFiltering: true })
     .toBuffer();
 }
