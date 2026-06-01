@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isSandboxEnvironment } from "@/lib/environment";
+import { renderFinalCard } from "@/lib/football-card-renderer";
 import JSZip from "jszip";
 
 function sanitizeFilename(value: string): string {
@@ -32,7 +33,7 @@ interface DownloadImageData {
 
 export async function POST(request: NextRequest) {
   try {
-    const { collectibleId, imageUrls, themeName, packageType } = await request.json();
+    const { collectibleId, imageUrls, themeName, packageType, formData = {} } = await request.json();
 
     if (!collectibleId || !imageUrls || !Array.isArray(imageUrls)) {
       return NextResponse.json(
@@ -58,12 +59,14 @@ export async function POST(request: NextRequest) {
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          const data = await response.arrayBuffer();
+          const sourceData = Buffer.from(await response.arrayBuffer());
+          const data = await renderFinalCard(sourceData, imageData.templateUsed, formData);
           const fileInfo = getImageFileInfo(response.headers.get("content-type"), sourceUrl);
+          const isRenderedCard = imageData.templateUsed === "futebol-2026";
           return {
             data,
-            filename: `${sanitizeFilename(themeName)}_v${index + 1}_${sanitizeFilename(imageData.templateUsed || "card")}.${fileInfo.extension}`,
-            contentType: fileInfo.contentType,
+            filename: `${sanitizeFilename(themeName)}_v${index + 1}_${sanitizeFilename(imageData.templateUsed || "card")}.${isRenderedCard ? "jpg" : fileInfo.extension}`,
+            contentType: isRenderedCard ? "image/jpeg" : fileInfo.contentType,
             templateUsed: imageData.templateUsed,
           };
         } catch (error) {
@@ -86,7 +89,7 @@ export async function POST(request: NextRequest) {
     // Se for apenas uma imagem, retorna diretamente
     if (validImages.length === 1) {
       const image = validImages[0]!;
-      return new Response(image.data, {
+      return new Response(new Uint8Array(image.data), {
         headers: {
           'Content-Type': image.contentType,
           'Content-Disposition': `attachment; filename="${image.filename}"`,

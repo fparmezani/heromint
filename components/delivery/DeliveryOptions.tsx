@@ -8,6 +8,7 @@ interface DeliveryOptionsProps {
   collectibleId: string;
   packageType: string;
   themeName: string;
+  formData: Record<string, string>;
   generatedImages: Array<{ imageUrl: string; templateUsed?: string }>;
   onDeliveryComplete?: () => void;
 }
@@ -23,6 +24,7 @@ export function DeliveryOptions({
   collectibleId,
   packageType,
   themeName,
+  formData,
   generatedImages,
   onDeliveryComplete,
 }: DeliveryOptionsProps) {
@@ -50,6 +52,7 @@ export function DeliveryOptions({
           userEmail: email,
           userName: name,
           packageType,
+          formData,
         }),
       });
 
@@ -81,6 +84,7 @@ export function DeliveryOptions({
           imageUrls: generatedImages,
           themeName,
           packageType,
+          formData,
         }),
       });
 

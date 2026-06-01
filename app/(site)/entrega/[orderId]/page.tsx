@@ -296,6 +296,7 @@ export default function EntregaPage() {
               collectibleId={order.collectible_id}
               packageType={order.package_type}
               themeName={order.theme_name}
+              formData={order.form_data}
               generatedImages={order.generated_images.map(img => ({
                 imageUrl: img.image_url,
                 templateUsed: img.template_used,

@@ -13,11 +13,11 @@ import {
   ChevronRight,
   Loader2
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { getUserOrders, getOrCreateUser, type Order, type GeneratedImage, type User as AccountUser } from "@/lib/supabase";
 import { PACKAGE_CONFIG } from "@/types/collectible";
+import { CardTemplate } from "@/components/preview/CardTemplate";
 
 interface OrderWithImages extends Order {
   generated_images: GeneratedImage[];
@@ -58,22 +58,15 @@ function OrderImageCarousel({
   return (
     <div className="mb-4 flex justify-center">
       <div className="relative w-full max-w-xs overflow-hidden rounded-xl border border-[#1E293B] bg-[#020617] aspect-[2/3]">
-        <a
-          href={activeImage.image_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group block h-full w-full"
-          aria-label={`Abrir imagem ${activeImageIndex + 1}`}
-        >
-          <Image
-            src={activeImage.image_url}
-            alt={`Imagem ${safeActiveImageIndex + 1} do pedido ${order.collectible_id}`}
-            fill
-            unoptimized
-            onError={() => onImageUnavailable(order.id, activeImage.id)}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+        <div className="h-full w-full">
+          <CardTemplate
+            themeId={activeImage.template_used}
+            photoUrl={activeImage.image_url}
+            generatedImageUrl={activeImage.image_url}
+            formData={order.form_data as Record<string, string>}
+            showWatermark={false}
           />
-        </a>
+        </div>
 
         {hasMultipleImages && (
           <>
@@ -224,6 +217,7 @@ export default function MinhaContaPage() {
           })),
           themeName: order.theme_name,
           packageType: order.package_type,
+          formData: order.form_data,
         }),
       });
 
