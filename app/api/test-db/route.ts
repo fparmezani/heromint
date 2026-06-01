@@ -1,7 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getAdminSession } from "@/lib/admin-auth";
 
 export async function GET() {
+  const session = await getAdminSession();
+
+  if (!session) {
+    return NextResponse.json(
+      { success: false, error: "Acesso restrito ao administrador" },
+      { status: 403 }
+    );
+  }
+
   try {
     console.log('🔗 Testando conexão com Supabase...');
     

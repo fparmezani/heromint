@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAppConfig, updateAppConfig } from "@/lib/config";
+import { getAdminSession } from "@/lib/admin-auth";
+
+async function denyUnauthorizedRequest() {
+  const session = await getAdminSession();
+
+  if (!session) {
+    return NextResponse.json(
+      { success: false, error: "Acesso restrito ao administrador" },
+      { status: 403 }
+    );
+  }
+
+  return null;
+}
 
 // GET - Obter configurações atuais
 export async function GET() {
+  const unauthorizedResponse = await denyUnauthorizedRequest();
+  if (unauthorizedResponse) return unauthorizedResponse;
+
   try {
     const config = await getAppConfig();
     
@@ -24,6 +41,9 @@ export async function GET() {
 
 // POST - Atualizar configurações
 export async function POST(request: NextRequest) {
+  const unauthorizedResponse = await denyUnauthorizedRequest();
+  if (unauthorizedResponse) return unauthorizedResponse;
+
   try {
     const { config } = await request.json();
     
