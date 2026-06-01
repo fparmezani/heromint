@@ -3,6 +3,8 @@ import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentSt
 import { isSandboxEnvironment } from "@/lib/environment";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import { readGeneratedImageToken } from "@/lib/generated-image-token";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 interface GeneratedPaymentImage {
   imageUrl: string;
@@ -27,10 +29,13 @@ export async function POST(request: NextRequest) {
       generatedImages,
       isDevMode = false
     } = requestBody;
+    const session = await getServerSession(authOptions);
+    const effectiveUserEmail = session?.user?.email || userEmail;
+    const effectiveUserName = session?.user?.name || userName;
 
     console.log('✅ [PAYMENT] Dados extraídos:', {
-      userEmail,
-      userName,
+      userEmail: effectiveUserEmail,
+      userName: effectiveUserName,
       collectibleId,
       themeName,
       packageType,
@@ -39,7 +44,7 @@ export async function POST(request: NextRequest) {
       isDevMode
     });
 
-    if (!userEmail || !collectibleId || !themeName || !packageType || !formData) {
+    if (!effectiveUserEmail || !collectibleId || !themeName || !packageType || !formData) {
       console.log('❌ [PAYMENT] Dados obrigatórios faltando');
       return NextResponse.json(
         { error: "Dados obrigatórios faltando" },
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     console.log('👤 [PAYMENT] Buscando ou criando usuário...');
     // Busca ou cria usuário
-    const user = await getOrCreateUser(userEmail, userName);
+    const user = await getOrCreateUser(effectiveUserEmail, effectiveUserName);
     console.log('✅ [PAYMENT] Usuário obtido:', { id: user.id, email: user.email });
     
     console.log('💰 [PAYMENT] Calculando valor total...');

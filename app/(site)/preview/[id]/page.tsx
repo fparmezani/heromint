@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ArrowLeft, CreditCard, Shield, Star, Loader2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { CardTemplate } from "@/components/preview/CardTemplate";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
@@ -39,6 +40,9 @@ export default function PreviewPage() {
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const paymentEmail = session?.user?.email || userEmail;
+  const paymentUserName = session?.user?.name || userName;
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -58,14 +62,18 @@ export default function PreviewPage() {
 
   // Verifica se há um pedido pendente no localStorage
   useEffect(() => {
-    const pendingOrder = localStorage.getItem('heromint_pending_order_id');
-    if (pendingOrder) {
-      setPendingOrderId(pendingOrder);
-    }
+    const timeoutId = window.setTimeout(() => {
+      const pendingOrder = localStorage.getItem('heromint_pending_order_id');
+      if (pendingOrder) {
+        setPendingOrderId(pendingOrder);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const handlePaymentFlow = () => {
-    if (!userEmail || !userEmail.includes("@")) {
+    if (!paymentEmail || !paymentEmail.includes("@")) {
       setShowLoginForm(true);
       return;
     }
@@ -86,8 +94,8 @@ export default function PreviewPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userEmail,
-          userName,
+          userEmail: paymentEmail,
+          userName: paymentUserName,
           collectibleId: data.collectibleId,
           themeName: data.themeName,
           packageType: data.packageType,
@@ -125,8 +133,8 @@ export default function PreviewPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userEmail,
-          userName,
+          userEmail: paymentEmail,
+          userName: paymentUserName,
           collectibleId: data.collectibleId,
           themeName: data.themeName,
           packageType: data.packageType,
@@ -178,12 +186,22 @@ export default function PreviewPage() {
     const timeoutId = window.setTimeout(() => {
       const savedEmail = localStorage.getItem("heromint_user_email");
       const savedName = localStorage.getItem("heromint_user_name");
-      if (savedEmail) setUserEmail(savedEmail);
-      if (savedName) setUserName(savedName);
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+        localStorage.setItem("heromint_user_email", session.user.email);
+      } else if (savedEmail) {
+        setUserEmail(savedEmail);
+      }
+      if (session?.user?.name) {
+        setUserName(session.user.name);
+        localStorage.setItem("heromint_user_name", session.user.name);
+      } else if (savedName) {
+        setUserName(savedName);
+      }
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [session?.user?.email, session?.user?.name]);
 
   if (loading) {
     return (
@@ -295,7 +313,13 @@ export default function PreviewPage() {
               <CardTemplate
                 themeId={currentTemplate}
                 photoUrl={data.photoUrls?.[0] ?? data.photoUrl ?? ""}
-                generatedImageUrl={currentImage.isMock ? undefined : currentImage.originalImageUrl || currentImage.imageUrl}
+                generatedImageUrl={
+                  currentImage.isMock
+                    ? undefined
+                    : shouldBypassWatermark()
+                      ? currentImage.originalImageUrl || currentImage.imageUrl
+                      : currentImage.previewImageUrl || currentImage.imageUrl
+                }
                 formData={data.formData}
                 showWatermark={!shouldBypassWatermark()}
               />
@@ -397,7 +421,7 @@ export default function PreviewPage() {
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  {userEmail ? 
+                  {paymentEmail ?
                     `Finalizar Pagamento - R$ ${pkg ? (pkg.price / 100).toFixed(2).replace(".", ",") : "0,00"}` :
                     "Fazer Login e Pagar"
                   }
