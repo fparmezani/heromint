@@ -30,6 +30,24 @@ const replicate = new Replicate({
 
 export const MAX_FAMILY_REFERENCE_PHOTOS = 5;
 
+async function uploadReplicateReference(image: string, label: string) {
+  const match = image.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
+  if (!match) return image;
+
+  const file = await replicate.files.create(Buffer.from(match[2], "base64"), {
+    name: `${label}.jpg`,
+    content_type: match[1],
+  });
+
+  return file.urls.get;
+}
+
+async function uploadReplicateReferences(images: string[], label: string) {
+  return Promise.all(
+    images.map((image, index) => uploadReplicateReference(image, `${label}-${index + 1}`))
+  );
+}
+
 // ── DETAILED STRUCTURED PROMPTS FOR PREMIUM GENERATION ──────────────────────
 function getDetailedPrompt(theme: string, formData: Record<string, string>): string {
   const nome = formData.nome || "Player";
@@ -353,6 +371,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
     // Use google/nano-banana-2 with ONLY person photo (no crest reference)
     // The crest will be added programmatically in the CardTemplate
     const prompt = buildFootball2026Prompt(input.formData);
+    const uploadedPersonPhoto = await uploadReplicateReference(personPhoto, `${theme}-person`);
 
     console.log(`🎨 Using google/nano-banana-2 for ${theme} (person photo only, no crest ref)...`);
     const output = await replicate.run(
@@ -360,7 +379,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
       {
         input: {
           prompt,
-          image_input: [personPhoto],
+          image_input: [uploadedPersonPhoto],
           aspect_ratio: "2:3",
           resolution: "2K",
           output_format: "jpg",
