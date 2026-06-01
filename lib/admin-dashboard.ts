@@ -41,24 +41,40 @@ function getMonthBoundaries() {
   };
 }
 
+async function getAvailableImages() {
+  const { data, error } = await supabaseAdmin
+    .from("generated_images")
+    .select("id, created_at, indisponivel")
+    .eq("indisponivel", false);
+
+  if (!error) {
+    return (data || []) as { id: string; created_at: string }[];
+  }
+
+  // Keep the dashboard available while older databases receive the migration.
+  if (error.code !== "42703") throw error;
+
+  const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+    .from("generated_images")
+    .select("id, created_at");
+
+  if (fallbackError) throw fallbackError;
+  return (fallbackData || []) as { id: string; created_at: string }[];
+}
+
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [{ data: orders, error: ordersError }, { data: images, error: imagesError }] =
+  const [{ data: orders, error: ordersError }, availableImages] =
     await Promise.all([
       supabaseAdmin
         .from("orders")
         .select("id, theme_name, package_type, total_amount, payment_status, created_at")
         .order("created_at", { ascending: false }),
-      supabaseAdmin
-        .from("generated_images")
-        .select("id, created_at")
-        .eq("indisponivel", false),
+      getAvailableImages(),
     ]);
 
   if (ordersError) throw ordersError;
-  if (imagesError) throw imagesError;
 
   const allOrders = (orders || []) as DashboardOrder[];
-  const availableImages = (images || []) as { id: string; created_at: string }[];
   const paidOrders = allOrders.filter((order) => order.payment_status === "paid");
   const { currentMonthStart, nextMonthStart, previousMonthStart } = getMonthBoundaries();
   const currentMonthOrders = allOrders.filter((order) =>

@@ -3,6 +3,22 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+class DisabledRealtimeTransport {
+  constructor() {
+    throw new Error('Supabase Realtime is disabled for this application');
+  }
+}
+
+export const serverSupabaseOptions = {
+  realtime: {
+    // HeroMint does not use Realtime. This prevents Node 20 from requiring a
+    // WebSocket implementation while keeping browser clients unchanged.
+    transport: DisabledRealtimeTransport as never,
+  },
+};
+
+const supabaseOptions = typeof window === 'undefined' ? serverSupabaseOptions : undefined;
+
 function createMockClient(): SupabaseClient {
   return new Proxy({} as SupabaseClient, {
     get(_target, prop) {
@@ -31,14 +47,15 @@ function createMockClient(): SupabaseClient {
 }
 
 export const supabase = supabaseUrl && supabasePublishableKey
-  ? createClient(supabaseUrl, supabasePublishableKey)
+  ? createClient(supabaseUrl, supabasePublishableKey, supabaseOptions)
   : createMockClient();
 
 // Cliente para uso no servidor (com service role key)
 export const supabaseAdmin = supabaseUrl && supabasePublishableKey
   ? createClient(
       supabaseUrl,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || supabasePublishableKey
+      process.env.SUPABASE_SERVICE_ROLE_KEY || supabasePublishableKey,
+      supabaseOptions
     )
   : createMockClient();
 
