@@ -26,7 +26,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [packageType, setPackageType] = useState<PackageType>("premium");
+  const [packageType, setPackageType] = useState<PackageType>("individual");
   const router = useRouter();
   const {
     isGenerating,

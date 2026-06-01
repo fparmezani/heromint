@@ -129,7 +129,7 @@ export async function createOrder(orderData: {
 }) {
   console.log('📝 [SUPABASE] Criando pedido com dados:', orderData);
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('orders')
     .insert([{
       ...orderData,
@@ -152,7 +152,7 @@ export async function updateOrderPaymentStatus(
   status: 'paid' | 'failed' | 'refunded',
   paymentId?: string
 ) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('orders')
     .update({
       payment_status: status,
@@ -189,7 +189,7 @@ export async function saveGeneratedImages(images: {
   file_name: string;
   file_size?: number;
 }[]) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('generated_images')
     .insert(images)
     .select();

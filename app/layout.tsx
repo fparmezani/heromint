@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Bebas_Neue } from "next/font/google";
+import Script from "next/script";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
+
+const GOOGLE_ANALYTICS_ID = "G-2PKPXM4HT1";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +39,18 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${inter.variable} ${bebasNeue.variable}`}>
       <body className="min-h-screen bg-[#020617] text-white antialiased">
         <AuthProvider>{children}</AuthProvider>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GOOGLE_ANALYTICS_ID}');
+          `}
+        </Script>
       </body>
     </html>
   );

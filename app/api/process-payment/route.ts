@@ -143,8 +143,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log('🏭 [PAYMENT] Modo produção - preparando para pagamento real');
-    // Em produção, retorna dados para pagamento real
+    console.log('🏭 [PAYMENT] Modo produção - preparando Stripe Payment Link');
     return NextResponse.json({
       success: true,
       message: "Pedido criado, redirecionando para pagamento",
