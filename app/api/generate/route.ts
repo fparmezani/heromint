@@ -89,6 +89,10 @@ export async function POST(request: NextRequest) {
       versions: pkg.versions,
     });
 
+    if (result.images.some((image) => image.isMock)) {
+      throw new Error("Image provider returned a mock fallback");
+    }
+
     const collectibleId = `heromint_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const traceLabel =
       formData.nome ||
@@ -99,10 +103,6 @@ export async function POST(request: NextRequest) {
 
     const images = await Promise.all(
       result.images.map(async (image, index) => {
-        if (image.isMock) {
-          return image;
-        }
-
         // Skip watermark/persist in sandbox/test mode
         if (bypassWatermark) {
           return {

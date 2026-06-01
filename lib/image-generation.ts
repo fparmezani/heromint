@@ -645,13 +645,7 @@ export async function generateMultipleCollectibleImages(
     } catch (err) {
       console.error(`⚠️ Failed to generate image ${i + 1}:`, err);
       
-      // Add fallback mock image
-      const fallbackPrompt = getBasePrompt(input.theme, input.formData);
-      results.push({
-        imageUrl: MOCK_IMAGES[input.theme] ?? MOCK_IMAGES["hero-card"],
-        promptUsed: fallbackPrompt,
-        isMock: true,
-      });
+      throw new Error(`Unable to generate image ${i + 1}`);
     }
   }
   

@@ -11,6 +11,7 @@ interface GeneratedPaymentImage {
   imageUrl: string;
   templateUsed?: string;
   deliveryToken?: string;
+  isMock?: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -49,6 +50,16 @@ export async function POST(request: NextRequest) {
       console.log('❌ [PAYMENT] Dados obrigatórios faltando');
       return NextResponse.json(
         { error: "Dados obrigatórios faltando" },
+        { status: 400 }
+      );
+    }
+    if (
+      !Array.isArray(generatedImages) ||
+      generatedImages.length === 0 ||
+      (generatedImages as GeneratedPaymentImage[]).some((image) => image.isMock)
+    ) {
+      return NextResponse.json(
+        { error: "Imagem real ainda nao foi gerada. Tente novamente antes de pagar." },
         { status: 400 }
       );
     }
