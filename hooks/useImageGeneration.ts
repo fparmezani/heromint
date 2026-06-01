@@ -78,7 +78,9 @@ export function useImageGeneration() {
       clearInterval(stepInterval);
 
       if (!response.ok) {
-        throw new Error("Erro na geração");
+        const result = await response.json().catch(() => null);
+        const errorCode = result?.errorCode ? ` Codigo: ${result.errorCode}.` : "";
+        throw new Error(`${result?.error || "Erro na geracao."}${errorCode}`);
       }
 
       const data = await response.json();

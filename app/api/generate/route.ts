@@ -10,11 +10,14 @@ import { hasClubCrest } from "@/lib/football-2026-prompt";
 import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 import { isThemeAvailable } from "@/lib/themes";
+import { normalizeReferenceImages } from "@/lib/reference-image";
 
 // Allow up to 5 minutes for Replicate to generate the image
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID().slice(0, 8);
+
   try {
     const body = await request.json();
     const { theme, formData, photoBase64, photosBase64, packageType } = body;
@@ -42,11 +45,27 @@ export async function POST(request: NextRequest) {
         ? photoBase64
         : undefined;
 
+    let normalizedPhotos = uploadedPhotos;
+    if (uploadedPhotos) {
+      try {
+        normalizedPhotos = await normalizeReferenceImages(uploadedPhotos);
+      } catch (error) {
+        console.error(`[GENERATE ${requestId}] Reference image normalization failed:`, error);
+        return NextResponse.json(
+          {
+            error: "Nao foi possivel ler a foto enviada. Tente outra foto em formato JPG ou PNG.",
+            errorCode: requestId,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     if (theme === "futebol-familia") {
-      const familyPhotos = Array.isArray(uploadedPhotos)
-        ? uploadedPhotos
-        : uploadedPhotos
-          ? [uploadedPhotos]
+      const familyPhotos = Array.isArray(normalizedPhotos)
+        ? normalizedPhotos
+        : normalizedPhotos
+          ? [normalizedPhotos]
           : [];
       const familySize = Number(formData.quantidadeMembros);
 
@@ -68,10 +87,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (theme === "futebol-2026" || theme === "futebol-panini") {
-      const playerPhotos = Array.isArray(uploadedPhotos)
-        ? uploadedPhotos
-        : uploadedPhotos
-          ? [uploadedPhotos]
+      const playerPhotos = Array.isArray(normalizedPhotos)
+        ? normalizedPhotos
+        : normalizedPhotos
+          ? [normalizedPhotos]
           : [];
 
       if (playerPhotos.length === 0) {
@@ -85,7 +104,7 @@ export async function POST(request: NextRequest) {
     const result = await generateMultipleCollectibleImages({
       theme,
       formData,
-      uploadedImageBase64: uploadedPhotos,
+      uploadedImageBase64: normalizedPhotos,
       versions: pkg.versions,
     });
 
@@ -149,7 +168,13 @@ export async function POST(request: NextRequest) {
       formData,
     });
   } catch (error) {
-    console.error("Generate error:", error);
-    return NextResponse.json({ error: "Erro ao gerar card. Tente novamente." }, { status: 500 });
+    console.error(`[GENERATE ${requestId}] Generate error:`, error);
+    return NextResponse.json(
+      {
+        error: "Nao foi possivel gerar o card com esta foto. Tente novamente ou envie outra foto.",
+        errorCode: requestId,
+      },
+      { status: 500 }
+    );
   }
 }

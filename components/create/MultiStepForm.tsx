@@ -150,7 +150,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
         throw new Error("Erro ao gerar card");
       }
     } catch (error) {
-      alert("Erro ao gerar seu card. Tente novamente.");
+      alert(error instanceof Error ? error.message : "Erro ao gerar seu card. Tente novamente.");
       resetGeneration();
     }
   };
