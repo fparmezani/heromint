@@ -44,7 +44,7 @@ export function PaymentButton({
 
     // Em produção, redireciona para pagamento real
     if (hasPaymentLink(packageType)) {
-      window.open(getPaymentLink(packageType), "_blank");
+      window.location.assign(getPaymentLink(packageType));
     }
   };
 

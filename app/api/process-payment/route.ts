@@ -19,7 +19,17 @@ export async function POST(request: NextRequest) {
     console.log('🚀 [PAYMENT] Iniciando processamento de pagamento...');
     
     const requestBody = await request.json();
-    console.log('📦 [PAYMENT] Dados recebidos:', JSON.stringify(requestBody, null, 2));
+    console.log('📦 [PAYMENT] Dados recebidos:', {
+      userEmail: requestBody.userEmail,
+      userName: requestBody.userName,
+      collectibleId: requestBody.collectibleId,
+      themeName: requestBody.themeName,
+      packageType: requestBody.packageType,
+      generatedImageCount: Array.isArray(requestBody.generatedImages)
+        ? requestBody.generatedImages.length
+        : 0,
+      isDevMode: requestBody.isDevMode,
+    });
     
     const { 
       userEmail,

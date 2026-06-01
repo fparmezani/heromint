@@ -151,10 +151,11 @@ export default function PreviewPage() {
       const result = await response.json();
       
       if (result.success) {
-        // Opens Stripe in a new tab and stores the order ID for verification.
+        // Use a same-tab redirect: browsers may block a popup after awaiting
+        // the server request that creates the pending order.
         setPendingOrderId(result.order.id);
         localStorage.setItem('heromint_pending_order_id', result.order.id);
-        window.open(result.order.payment_url, '_blank');
+        window.location.assign(result.order.payment_url);
       } else {
         alert('Erro no processamento: ' + result.error);
       }
