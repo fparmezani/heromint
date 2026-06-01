@@ -141,15 +141,17 @@ export default function MinhaContaPage() {
 
   // Polling para pedidos pendentes
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const userId = user?.id;
 
   const startPolling = useCallback(() => {
     if (pollingRef.current) return;
     
     pollingRef.current = setInterval(async () => {
-      if (!user?.id) return;
+      if (!userId) return;
       
       try {
-        const userOrders = await getUserOrders(user.id);
+        await fetch("/api/stripe/reconcile", { method: "POST" });
+        const userOrders = await getUserOrders(userId);
         setOrders(userOrders);
         
         // Para polling se não houver pedidos pendentes
@@ -162,7 +164,7 @@ export default function MinhaContaPage() {
         console.error("Erro ao atualizar pedidos:", error);
       }
     }, 5000);
-  }, [user?.id]);
+  }, [userId]);
 
   useEffect(() => {
     if (status !== "authenticated" || !email || isLoggedIn || loading) return;
@@ -192,6 +194,7 @@ export default function MinhaContaPage() {
     if (!user?.id) return;
     setLoading(true);
     try {
+      await fetch("/api/stripe/reconcile", { method: "POST" });
       const userOrders = await getUserOrders(user.id);
       setOrders(userOrders);
     } catch (error) {

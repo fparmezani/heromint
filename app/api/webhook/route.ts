@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { updateOrderPaymentStatus } from "@/lib/supabase";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import { confirmOrderFromStripeSession } from "@/lib/stripe-payment";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -24,21 +24,8 @@ export async function POST(request: Request) {
     ) {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      if (session.payment_status !== "paid") {
-        return NextResponse.json({ received: true, processed: false });
-      }
-
-      if (!session.client_reference_id) {
-        console.warn("[STRIPE WEBHOOK] Checkout Session without client_reference_id:", session.id);
-        return NextResponse.json({ received: true, processed: false });
-      }
-
-      const paymentId =
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.id;
-
-      await updateOrderPaymentStatus(session.client_reference_id, "paid", paymentId);
+      const orderId = await confirmOrderFromStripeSession(session);
+      return NextResponse.json({ received: true, processed: Boolean(orderId) });
     }
 
     return NextResponse.json({ received: true });

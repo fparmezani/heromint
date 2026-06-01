@@ -167,6 +167,46 @@ export async function updateOrderPaymentStatus(
   return data;
 }
 
+export async function findPendingOrderForStripePayment(
+  email: string,
+  totalAmount: number,
+  paymentId: string,
+  paidAt: Date
+) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const { data: existingPayment, error: existingPaymentError } = await supabaseAdmin
+    .from('orders')
+    .select('id')
+    .eq('payment_id', paymentId)
+    .maybeSingle();
+
+  if (existingPaymentError) throw existingPaymentError;
+  if (existingPayment) return existingPayment;
+
+  const { data: user, error: userError } = await supabaseAdmin
+    .from('users')
+    .select('id')
+    .ilike('email', normalizedEmail)
+    .single();
+
+  if (userError) throw userError;
+
+  const { data: order, error: orderError } = await supabaseAdmin
+    .from('orders')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('payment_status', 'pending')
+    .eq('total_amount', totalAmount)
+    .gte('created_at', new Date(paidAt.getTime() - 6 * 60 * 60 * 1000).toISOString())
+    .lte('created_at', paidAt.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (orderError) throw orderError;
+  return order;
+}
+
 export async function getUserOrders(userId: string) {
   const { data, error } = await supabase
     .from('orders')

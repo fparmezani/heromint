@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { updateOrderPaymentStatus } from "@/lib/supabase";
+import { confirmOrderFromStripeSession } from "@/lib/stripe-payment";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -14,16 +14,11 @@ export async function GET(request: Request) {
   try {
     const checkoutSession = await getStripe().checkout.sessions.retrieve(sessionId);
 
-    if (checkoutSession.payment_status !== "paid" || !checkoutSession.client_reference_id) {
+    const orderId = await confirmOrderFromStripeSession(checkoutSession);
+
+    if (!orderId) {
       return redirectToAccount(appUrl, "pending");
     }
-
-    const paymentId =
-      typeof checkoutSession.payment_intent === "string"
-        ? checkoutSession.payment_intent
-        : checkoutSession.id;
-
-    await updateOrderPaymentStatus(checkoutSession.client_reference_id, "paid", paymentId);
 
     return redirectToAccount(appUrl, "confirmed");
   } catch (error) {

@@ -58,6 +58,7 @@ export default function EntregaPage() {
     try {
       setLoading(true);
       setError(null);
+      await fetch("/api/stripe/reconcile", { method: "POST" });
       
       // Busca dados do pedido com imagens e usuário
       const { data, error } = await supabase
@@ -115,6 +116,7 @@ export default function EntregaPage() {
       console.log(`🔄 [POLLING] Checking payment status... Attempt ${attempts}/${maxAttempts}`);
       
       try {
+        await fetch("/api/stripe/reconcile", { method: "POST" });
         const { data, error } = await supabase
           .from('orders')
           .select('payment_status')
