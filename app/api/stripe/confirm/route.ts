@@ -5,16 +5,17 @@ import { updateOrderPaymentStatus } from "@/lib/supabase";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const sessionId = url.searchParams.get("session_id");
+  const appUrl = getPublicAppUrl(request);
 
   if (!sessionId) {
-    return NextResponse.redirect(new URL("/minha-conta?payment=missing", url.origin));
+    return redirectToAccount(appUrl, "missing");
   }
 
   try {
     const checkoutSession = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (checkoutSession.payment_status !== "paid" || !checkoutSession.client_reference_id) {
-      return NextResponse.redirect(new URL("/minha-conta?payment=pending", url.origin));
+      return redirectToAccount(appUrl, "pending");
     }
 
     const paymentId =
@@ -24,9 +25,29 @@ export async function GET(request: Request) {
 
     await updateOrderPaymentStatus(checkoutSession.client_reference_id, "paid", paymentId);
 
-    return NextResponse.redirect(new URL("/minha-conta?payment=confirmed", url.origin));
+    return redirectToAccount(appUrl, "confirmed");
   } catch (error) {
     console.error("[STRIPE CONFIRM] Error:", error);
-    return NextResponse.redirect(new URL("/minha-conta?payment=error", url.origin));
+    return redirectToAccount(appUrl, "error");
   }
+}
+
+function getPublicAppUrl(request: Request): string {
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (configuredAppUrl) {
+    return configuredAppUrl.replace(/\/$/, "");
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProtocol = request.headers.get("x-forwarded-proto") || "https";
+
+  if (forwardedHost) {
+    return `${forwardedProtocol}://${forwardedHost}`;
+  }
+
+  return new URL(request.url).origin;
+}
+
+function redirectToAccount(appUrl: string, paymentStatus: string) {
+  return NextResponse.redirect(new URL(`/minha-conta?payment=${paymentStatus}`, appUrl));
 }
