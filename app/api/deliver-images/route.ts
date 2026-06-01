@@ -26,8 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Em produção, verificaria se o pagamento foi aprovado
     if (!isSandboxEnvironment()) {
-      // TODO: Verificar status do pagamento no Asaas
-      // const paymentStatus = await verifyAsaasPayment(paymentId);
+      // TODO: Verify the persisted payment status before delivering images.
       // if (paymentStatus !== 'approved') {
       //   return NextResponse.json({ error: "Pagamento não aprovado" }, { status: 403 });
       // }

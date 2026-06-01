@@ -4,7 +4,7 @@ import { ThemeGrid } from "@/components/themes/ThemeGrid";
 
 export const metadata: Metadata = {
   title: "Colecao Futebol - HeroMint",
-  description: "Escolha entre Futebol 2026, Futebol Panini e Futebol Familia para transformar suas fotos em imagens esportivas premium.",
+  description: "Escolha entre Futebol 2026 e Futebol Panini para transformar suas fotos em imagens esportivas premium.",
 };
 
 export default function TemasPage() {
@@ -27,7 +27,7 @@ export default function TemasPage() {
             VIVA SUA PAIXAO PELO <span className="gradient-text">FUTEBOL</span>
           </h1>
           <p className="text-[#94A3B8] text-lg max-w-2xl mx-auto">
-            Crie retratos de jogador, figurinhas colecionaveis ou uma foto especial com toda a familia no estadio.
+            Crie retratos de jogador e figurinhas colecionaveis com sua identidade.
           </p>
         </div>
 

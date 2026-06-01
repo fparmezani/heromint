@@ -59,7 +59,7 @@ export interface Order {
   package_type: 'individual' | 'premium' | 'completo' | 'futebol-familia';
   total_amount: number; // em centavos
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
-  payment_id?: string; // ID do Asaas
+  payment_id?: string; // Payment provider transaction ID
   form_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;

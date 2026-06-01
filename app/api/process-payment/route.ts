@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, getOrCreateUser, saveGeneratedImages, updateOrderPaymentStatus } from "@/lib/supabase";
 import { isSandboxEnvironment } from "@/lib/environment";
-import { PACKAGE_CONFIG } from "@/types/collectible";
+import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import { readGeneratedImageToken } from "@/lib/generated-image-token";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getPaymentLink } from "@/lib/payment-config";
 
 interface GeneratedPaymentImage {
   imageUrl: string;
@@ -48,6 +49,12 @@ export async function POST(request: NextRequest) {
       console.log('❌ [PAYMENT] Dados obrigatórios faltando');
       return NextResponse.json(
         { error: "Dados obrigatórios faltando" },
+        { status: 400 }
+      );
+    }
+    if (!isPackageAvailable(packageType)) {
+      return NextResponse.json(
+        { error: "Pacote ainda nÃ£o disponÃ­vel" },
         { status: 400 }
       );
     }
@@ -145,7 +152,7 @@ export async function POST(request: NextRequest) {
         id: order.id,
         collectible_id: collectibleId,
         status: 'pending',
-        payment_url: getPaymentUrl(packageType, order.id, isSandboxEnvironment()),
+        payment_url: getPaymentUrl(packageType, order.id, effectiveUserEmail),
       },
     });
 
@@ -167,28 +174,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function getPaymentUrl(packageType: string, orderId: string, isSandbox: boolean): string {
-  const sandboxUrls: Record<string, string> = {
-    individual: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
-    premium: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
-    completo: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
-    "futebol-familia": "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
-  };
-
-  const productionUrls: Record<string, string> = {
-    individual: "https://www.asaas.com/c/y7jy5r0ollkp4t5f",
-    premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
-    completo: "https://www.asaas.com/c/completo-10-images",
-    "futebol-familia": "https://www.asaas.com/c/hmcve2c357wghwb7",
-  };
-
-  const baseUrls = isSandbox ? sandboxUrls : productionUrls;
-  const baseUrl = baseUrls[packageType];
+function getPaymentUrl(packageType: string, orderId: string, userEmail: string): string {
+  const baseUrl = getPaymentLink(packageType as keyof typeof PACKAGE_CONFIG);
 
   if (!baseUrl) {
-    throw new Error(`Link de pagamento ${isSandbox ? "sandbox" : "produção"} não configurado para o pacote: ${packageType}`);
+    throw new Error(`Link de pagamento Stripe não configurado para o pacote: ${packageType}`);
   }
 
-  const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://heromint.vercel.app"}/entrega/${orderId}`;
-  return `${baseUrl}?callback=${encodeURIComponent(callbackUrl)}&order_id=${orderId}`;
+  const paymentUrl = new URL(baseUrl);
+  paymentUrl.searchParams.set("client_reference_id", orderId);
+  paymentUrl.searchParams.set("prefilled_email", userEmail);
+  return paymentUrl.toString();
 }

@@ -81,7 +81,7 @@ export default function EntregaPage() {
 
       // Verifica se o pagamento foi aprovado
       if (data.payment_status !== 'paid') {
-        setError("Pagamento ainda não foi confirmado. Aguardando confirmação do Asaas...");
+        setError("Pagamento ainda não foi confirmado. Aguardando confirmação do Stripe...");
         // Start polling if payment is still pending
         startPolling();
         return;

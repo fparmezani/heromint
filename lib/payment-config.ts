@@ -1,11 +1,12 @@
 import type { PackageType } from "@/types/collectible";
+import { isPackageAvailable } from "@/types/collectible";
 
-// Configuração dos links de pagamento do Asaas
+// Stripe Payment Links for packages currently available for sale.
 export const PAYMENT_LINKS: Record<PackageType, string> = {
-  individual: "https://www.asaas.com/c/60vtiurluc6gmh3w",
-  premium: "https://www.asaas.com/c/1gg8ttm0exyb26w3",
-  completo: "https://www.asaas.com/c/completo-10-images", // TODO: Criar link para 10 imagens
-  "futebol-familia": "https://www.asaas.com/c/hmcve2c357wghwb7",
+  individual: "https://buy.stripe.com/5kQ00dceK2V4fYwfXidZ600",
+  premium: "https://buy.stripe.com/aFa14h6UqdzI9A8aCYdZ601",
+  completo: "",
+  "futebol-familia": "",
 };
 
 // Função para obter o link de pagamento
@@ -15,6 +16,7 @@ export function getPaymentLink(packageType: PackageType): string {
 
 // Função para verificar se o link de pagamento está disponível
 export function hasPaymentLink(packageType: PackageType): boolean {
+  if (!isPackageAvailable(packageType)) return false;
   const link = PAYMENT_LINKS[packageType];
   return Boolean(link && !link.includes("TODO"));
 }

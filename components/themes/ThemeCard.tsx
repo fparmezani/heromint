@@ -26,6 +26,13 @@ export function ThemeCard({ theme, index = 0, available = true }: ThemeCardProps
       transition={{ duration: 0.5, delay: index * 0.06 }}
     >
       <div className={`group relative bg-[#0F172A] border border-[#1E293B] rounded-3xl overflow-hidden flex flex-col h-full ${available ? "card-hover" : "opacity-70"}`}>
+        {available && (
+          <Link
+            href={`/criar/${theme.id}`}
+            aria-label={`Criar ${theme.name}`}
+            className="absolute inset-0 z-20 rounded-3xl"
+          />
+        )}
         {/* Preview visual */}
         <div
           className={`h-40 bg-gradient-to-br ${theme.gradient} flex items-center justify-center relative overflow-hidden`}
@@ -68,13 +75,10 @@ export function ThemeCard({ theme, index = 0, available = true }: ThemeCardProps
           {/* CTA */}
           <div className="mt-auto pt-3">
             {available ? (
-              <Link
-                href={`/criar/${theme.id}`}
-                className="btn-primary w-full text-sm h-12 rounded-xl text-center"
-              >
+              <div className="btn-primary w-full text-sm h-12 rounded-xl text-center">
                 Criar Agora
                 <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
+              </div>
             ) : (
               <div className="w-full h-12 rounded-xl border border-[#334155] bg-[#1E293B]/70 text-[#94A3B8] text-sm font-bold flex items-center justify-center gap-2">
                 <Clock3 className="w-4 h-4" />

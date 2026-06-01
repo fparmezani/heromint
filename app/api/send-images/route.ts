@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Em produção, verificaria se o pagamento foi aprovado
     if (!isSandboxEnvironment()) {
-      // TODO: Verificar status do pagamento no Asaas
+      // TODO: Verify the persisted payment status before sending images.
     }
 
     // Baixa todas as imagens e converte para anexos

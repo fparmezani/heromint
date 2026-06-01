@@ -7,8 +7,9 @@ import { persistGeneratedImage } from "@/lib/generated-image-storage";
 import { createGeneratedImageToken } from "@/lib/generated-image-token";
 import { shouldBypassWatermark } from "@/lib/environment";
 import { hasClubCrest } from "@/lib/football-2026-prompt";
-import { PACKAGE_CONFIG } from "@/types/collectible";
+import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
+import { isThemeAvailable } from "@/lib/themes";
 
 // Allow up to 5 minutes for Replicate to generate the image
 export const maxDuration = 300;
@@ -20,6 +21,12 @@ export async function POST(request: NextRequest) {
 
     if (!theme || !formData || !packageType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+    if (!isThemeAvailable(theme)) {
+      return NextResponse.json({ error: "Theme not available yet" }, { status: 400 });
+    }
+    if (!isPackageAvailable(packageType)) {
+      return NextResponse.json({ error: "Package not available yet" }, { status: 400 });
     }
 
     // Get number of versions based on package type

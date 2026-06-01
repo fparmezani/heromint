@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { NextResponse } from "next/server";
+import { updateOrderPaymentStatus } from "@/lib/supabase";
+import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
 
@@ -9,30 +12,38 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // In production, verify Stripe webhook:
-    // const event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
-    //
-    // if (event.type === "checkout.session.completed") {
-    //   const session = event.data.object as Stripe.Checkout.Session;
-    //   const { collectibleId } = session.metadata!;
-    //
-    //   await prisma.$transaction([
-    //     prisma.order.updateMany({
-    //       where: { stripeSessionId: session.id },
-    //       data: { status: "paid", paidAt: new Date() },
-    //     }),
-    //     prisma.collectible.update({
-    //       where: { id: collectibleId },
-    //       data: { isPaid: true, status: "paid" },
-    //     }),
-    //   ]);
-    // }
+    const event = getStripe().webhooks.constructEvent(
+      body,
+      signature,
+      getStripeWebhookSecret()
+    );
+
+    if (
+      event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded"
+    ) {
+      const session = event.data.object as Stripe.Checkout.Session;
+
+      if (session.payment_status !== "paid") {
+        return NextResponse.json({ received: true, processed: false });
+      }
+
+      if (!session.client_reference_id) {
+        console.warn("[STRIPE WEBHOOK] Checkout Session without client_reference_id:", session.id);
+        return NextResponse.json({ received: true, processed: false });
+      }
+
+      const paymentId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.id;
+
+      await updateOrderPaymentStatus(session.client_reference_id, "paid", paymentId);
+    }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook error:", error);
+    console.error("[STRIPE WEBHOOK] Error:", error);
     return NextResponse.json({ error: "Webhook error" }, { status: 400 });
   }
 }
-
-// Raw body parsing is handled by Next.js App Router automatically for POST routes

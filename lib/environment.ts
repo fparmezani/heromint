@@ -2,8 +2,8 @@
 
 export function isSandboxEnvironment(): boolean {
   const configuredEnvironment =
-    process.env.NEXT_PUBLIC_ASAAS_ENVIRONMENT ||
-    process.env.ASAAS_ENVIRONMENT;
+    process.env.NEXT_PUBLIC_PAYMENT_ENVIRONMENT ||
+    process.env.PAYMENT_ENVIRONMENT;
 
   if (configuredEnvironment) {
     return configuredEnvironment === "sandbox";
@@ -31,9 +31,9 @@ export function getEnvironmentInfo() {
     isSandbox: isSandboxEnvironment(),
     isProduction: isProductionEnvironment(),
     bypassWatermark: shouldBypassWatermark(),
-    asaasEnv:
-      process.env.NEXT_PUBLIC_ASAAS_ENVIRONMENT ||
-      process.env.ASAAS_ENVIRONMENT ||
+    paymentEnv:
+      process.env.NEXT_PUBLIC_PAYMENT_ENVIRONMENT ||
+      process.env.PAYMENT_ENVIRONMENT ||
       "development",
     nodeEnv: process.env.NODE_ENV || "development",
   };

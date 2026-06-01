@@ -28,11 +28,11 @@ export function ThemeUniverseSection() {
             ESCOLHA SEU CARD DE <span className="gradient-text">FUTEBOL</span>
           </h2>
           <p className="text-[#94A3B8] mt-3 max-w-2xl mx-auto">
-            Tres formatos para transformar sua foto em uma lembranca esportiva premium.
+            Dois formatos para transformar sua foto em uma lembranca esportiva premium.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {availableThemes.map((theme, index) => (
             <motion.div
               key={theme.id}
@@ -40,17 +40,22 @@ export function ThemeUniverseSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08 }}
-              className="bg-[#0F172A] border border-green-500/20 rounded-3xl p-6 hover:border-green-500/60 hover:-translate-y-1 transition-all"
+              className="relative bg-[#0F172A] border border-green-500/20 rounded-3xl p-6 hover:border-green-500/60 hover:-translate-y-1 transition-all"
             >
+              <Link
+                href={`/criar/${theme.id}`}
+                aria-label={`Criar ${theme.name}`}
+                className="absolute inset-0 z-20 rounded-3xl"
+              />
               <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-3xl mb-5`}>
                 {theme.icon}
               </div>
               <h3 className="text-white text-xl font-bold mb-2">{theme.name}</h3>
               <p className="text-[#94A3B8] text-sm leading-relaxed mb-6">{theme.description}</p>
-              <Link href={`/criar/${theme.id}`} className="btn-primary w-full h-11 rounded-xl text-sm">
+              <div className="btn-primary w-full h-11 rounded-xl text-sm">
                 Criar Agora
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </div>
             </motion.div>
           ))}
         </div>

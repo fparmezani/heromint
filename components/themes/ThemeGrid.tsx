@@ -13,7 +13,7 @@ export function ThemeGrid() {
           <h2 className="font-impact text-3xl text-white tracking-wide">COLEÇÃO FUTEBOL</h2>
           <p className="text-[#94A3B8] mt-2">Escolha seu formato e transforme suas fotos em imagens esportivas premium.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
           {availableThemes.map((theme, index) => (
             <ThemeCard key={theme.id} theme={theme} index={index} />
           ))}

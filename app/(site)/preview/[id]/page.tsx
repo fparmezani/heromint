@@ -151,7 +151,7 @@ export default function PreviewPage() {
       const result = await response.json();
       
       if (result.success) {
-        // Abre Asaas em nova aba e guarda orderId para verificar depois
+        // Opens Stripe in a new tab and stores the order ID for verification.
         setPendingOrderId(result.order.id);
         localStorage.setItem('heromint_pending_order_id', result.order.id);
         window.open(result.order.payment_url, '_blank');
@@ -350,7 +350,7 @@ export default function PreviewPage() {
                     ✅ Pagamento disponível! Clique no botão abaixo para finalizar.
                   </p>
                   <p className="text-[#94A3B8] text-xs mt-1">
-                    Você será redirecionado ao Asaas e retornará automaticamente aqui após o pagamento.
+                    Você será redirecionado ao Stripe para concluir o pagamento com segurança.
                   </p>
                 </div>
               )}
@@ -433,7 +433,7 @@ export default function PreviewPage() {
             {pendingOrderId && (
               <div className="mt-3 p-3 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg">
                 <p className="text-[#22C55E] text-xs font-medium mb-2 text-center">
-                  ✅ Pagamento iniciado! Já pagou no Asaas?
+                  ✅ Pagamento iniciado! Já concluiu no Stripe?
                 </p>
                 <Link
                   href={`/entrega/${pendingOrderId}`}
@@ -446,7 +446,7 @@ export default function PreviewPage() {
             )}
 
             <p className="text-xs text-[#94A3B8] text-center">
-              Asaas • Pagamento seguro • Pix, Cartão ou Boleto
+              Stripe • Pagamento seguro
             </p>
 
             {/* Sandbox testing button */}

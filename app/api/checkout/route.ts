@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PACKAGE_CONFIG } from "@/types/collectible";
+import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 
 export async function POST(request: NextRequest) {
@@ -14,10 +14,13 @@ export async function POST(request: NextRequest) {
       body = Object.fromEntries(formData.entries()) as Record<string, string>;
     }
 
-    const { collectibleId, theme, packageType } = body;
+    const { collectibleId, packageType } = body;
 
     if (!collectibleId || !packageType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+    if (!isPackageAvailable(packageType)) {
+      return NextResponse.json({ error: "Package not available yet" }, { status: 400 });
     }
 
     const pkg = PACKAGE_CONFIG[packageType as PackageType];

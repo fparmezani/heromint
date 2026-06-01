@@ -49,3 +49,9 @@ export const PACKAGE_CONFIG: Record<PackageType, { label: string; price: number;
     versions: 1,
   },
 };
+
+export const AVAILABLE_PACKAGE_IDS = ["individual", "premium"] as const;
+
+export function isPackageAvailable(packageType: string): packageType is typeof AVAILABLE_PACKAGE_IDS[number] {
+  return AVAILABLE_PACKAGE_IDS.includes(packageType as typeof AVAILABLE_PACKAGE_IDS[number]);
+}

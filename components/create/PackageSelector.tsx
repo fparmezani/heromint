@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Check, Star, Zap, Crown, Heart } from "lucide-react";
 import type { PackageType } from "@/types/collectible";
-import { PACKAGE_CONFIG } from "@/types/collectible";
+import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 
 interface PackageSelectorProps {
   value: PackageType;
@@ -24,7 +24,9 @@ const PACKAGE_POPULAR: Partial<Record<PackageType, boolean>> = {
 export function PackageSelector({ value, onChange }: PackageSelectorProps) {
   return (
     <div className="grid grid-cols-1 gap-4">
-      {(Object.entries(PACKAGE_CONFIG) as [PackageType, typeof PACKAGE_CONFIG[PackageType]][]).map(([key, pkg]) => {
+      {(Object.entries(PACKAGE_CONFIG) as [PackageType, typeof PACKAGE_CONFIG[PackageType]][])
+        .filter(([key]) => isPackageAvailable(key))
+        .map(([key, pkg]) => {
         const Icon = PACKAGE_ICONS[key];
         const isSelected = value === key;
         const isPopular = PACKAGE_POPULAR[key];
@@ -81,7 +83,7 @@ export function PackageSelector({ value, onChange }: PackageSelectorProps) {
             </div>
           </motion.button>
         );
-      })}
+        })}
     </div>
   );
 }
