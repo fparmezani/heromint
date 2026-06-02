@@ -26,6 +26,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [hasImageAuthorization, setHasImageAuthorization] = useState(false);
   const [packageType, setPackageType] = useState<PackageType>("individual");
   const router = useRouter();
   const {
@@ -69,6 +70,10 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
     } else if (currentStep === 2) {
       if (photoUrls.length === 0) {
         alert("Por favor, envie pelo menos uma foto antes de continuar.");
+        return;
+      }
+      if (!hasImageAuthorization) {
+        alert("Confirme que você possui autorização para usar as fotos enviadas.");
         return;
       }
       if (theme.id === "futebol-familia") {
@@ -289,6 +294,22 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
                 )}
               </div>
               <PhotoGuide />
+              <label className="flex items-start gap-3 rounded-xl border border-[#334155] bg-[#020617]/50 p-4">
+                <input
+                  type="checkbox"
+                  checked={hasImageAuthorization}
+                  onChange={(event) => setHasImageAuthorization(event.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#2563EB]"
+                />
+                <span className="text-xs leading-relaxed text-[#CBD5E1]">
+                  Declaro que possuo autorização para enviar e transformar estas fotos com inteligência
+                  artificial. Caso alguma imagem retrate criança ou adolescente, confirmo que sou o
+                  responsável legal ou que obtive autorização do responsável legal. Consulte nossa{" "}
+                  <a href="/politica-de-privacidade" target="_blank" rel="noreferrer" className="text-[#60A5FA] hover:underline">
+                    Política de Privacidade
+                  </a>.
+                </span>
+              </label>
             </div>
           )}
 

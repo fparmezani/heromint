@@ -1,5 +1,15 @@
 import Link from "next/link";
 import { Sparkles, Globe, MessageCircle, Play } from "lucide-react";
+import { CookiePreferencesButton } from "@/components/privacy/CookiePreferencesButton";
+
+const legalLinks = [
+  { label: "Termos de Uso", href: "/termos-de-uso" },
+  { label: "Política de Privacidade", href: "/politica-de-privacidade" },
+  { label: "Política de Cookies", href: "/politica-de-cookies" },
+  { label: "Política de Reembolso", href: "/politica-de-reembolso" },
+  { label: "Exclusão de Dados", href: "/exclusao-de-dados" },
+  { label: "Contato", href: "/contato" },
+];
 
 export function Footer() {
   return (
@@ -23,7 +33,7 @@ export function Footer() {
               <a href="#" className="w-8 h-8 rounded-lg border border-[#1E293B] flex items-center justify-center text-[#94A3B8] hover:text-white hover:border-[#2563EB] transition-all">
                 <Globe className="w-4 h-4" />
               </a>
-              <a href="#" className="w-8 h-8 rounded-lg border border-[#1E293B] flex items-center justify-center text-[#94A3B8] hover:text-white hover:border-[#2563EB] transition-all">
+              <a href="mailto:suporte@heromint.net" aria-label="Enviar e-mail para o suporte" className="w-8 h-8 rounded-lg border border-[#1E293B] flex items-center justify-center text-[#94A3B8] hover:text-white hover:border-[#2563EB] transition-all">
                 <MessageCircle className="w-4 h-4" />
               </a>
               <a href="#" className="w-8 h-8 rounded-lg border border-[#1E293B] flex items-center justify-center text-[#94A3B8] hover:text-white hover:border-[#2563EB] transition-all">
@@ -64,13 +74,16 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Legal</h4>
             <ul className="space-y-2">
-              {["Termos de Uso", "Política de Privacidade", "Política de Reembolso", "Contato"].map((item) => (
-                <li key={item}>
-                  <Link href="#" className="text-sm text-[#94A3B8] hover:text-white transition-colors">
-                    {item}
+              {legalLinks.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="text-sm text-[#94A3B8] hover:text-white transition-colors">
+                    {item.label}
                   </Link>
                 </li>
               ))}
+              <li>
+                <CookiePreferencesButton />
+              </li>
             </ul>
           </div>
         </div>

@@ -130,11 +130,11 @@ function SignInContent() {
             <div className="text-center mt-6">
               <p className="text-[#64748B] text-xs">
                 Ao fazer login, você concorda com nossos{" "}
-                <Link href="/terms" className="text-[#2563EB] hover:underline">
+                <Link href="/termos-de-uso" className="text-[#2563EB] hover:underline">
                   Termos de Uso
                 </Link>{" "}
                 e{" "}
-                <Link href="/privacy" className="text-[#2563EB] hover:underline">
+                <Link href="/politica-de-privacidade" className="text-[#2563EB] hover:underline">
                   Política de Privacidade
                 </Link>
               </p>
