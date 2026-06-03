@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  BadgeCheck,
   Camera,
   CheckCircle2,
   Clock,
@@ -12,89 +11,106 @@ import {
   Sparkles,
   Star,
   Trophy,
-  Zap,
 } from "lucide-react";
 
-const products = [
+const beforeAfterExamples = [
   {
-    name: "Futebol 2026",
-    href: "/criar/futebol-2026",
-    tag: "Mais vendido",
-    price: "a partir de R$ 9,90",
-    description:
-      "Um card premium de jogador com uniforme do Brasil, dados do atleta, país, time e visual de coleção esportiva.",
-    bullets: ["Retrato de jogador", "Alta resolução após pagamento", "Ideal para presente e redes sociais"],
-    gradient: "from-green-500 to-yellow-400",
-    icon: Trophy,
+    before: "/futebol/antes-menino-01.jpg",
+    name: "GABRIEL SILVA",
+    birth: "10-06-2011",
+    height: "1,52m",
+    weight: "45 kg",
+    team: "Flamengo",
+    accent: "from-emerald-400 to-yellow-300",
   },
   {
-    name: "Futebol Panini",
-    href: "/criar/futebol-panini",
-    tag: "Estilo figurinha",
-    price: "a partir de R$ 9,90",
-    description:
-      "Uma figurinha colecionável inspirada nos álbuns clássicos, com estética limpa, divertida e nostálgica.",
-    bullets: ["Visual de figurinha", "Fundo moderno", "Perfeito para coleção personalizada"],
-    gradient: "from-cyan-500 to-emerald-400",
-    icon: BadgeCheck,
+    before: "/futebol/antes-menino-02.jpg",
+    name: "LUCAS ALVES",
+    birth: "21-08-2010",
+    height: "1,58m",
+    weight: "49 kg",
+    team: "São Paulo",
+    accent: "from-yellow-300 to-blue-400",
+  },
+  {
+    before: "/futebol/antes-menino-03.jpg",
+    name: "MATEUS ROCHA",
+    birth: "04-03-2012",
+    height: "1,47m",
+    weight: "41 kg",
+    team: "Corinthians",
+    accent: "from-green-400 to-cyan-300",
+  },
+  {
+    before: "/futebol/antes-menino-04.jpg",
+    name: "PEDRO LIMA",
+    birth: "15-11-2011",
+    height: "1,55m",
+    weight: "46 kg",
+    team: "Palmeiras",
+    accent: "from-lime-300 to-emerald-500",
   },
 ];
 
 const benefits = [
   {
     icon: Camera,
-    title: "Você envia uma foto simples",
-    text: "Não precisa de estúdio, uniforme ou edição. Uma foto frontal e bem iluminada já é suficiente.",
+    title: "Foto simples vira card premium",
+    text: "Você envia uma foto frontal e a HeroMint cria uma versão com cara de coleção esportiva.",
   },
   {
     icon: Sparkles,
-    title: "A IA transforma em arte esportiva",
-    text: "O sistema cria uma versão de jogador mantendo a identidade da pessoa e aplicando o estilo escolhido.",
+    title: "Visual Futebol 2026",
+    text: "Bordas, símbolos, uniforme amarelo, dados do jogador e clima de grande campeonato.",
   },
   {
     icon: Download,
-    title: "Receba a imagem final",
-    text: "Após o pagamento, a imagem definitiva fica disponível na sua área para baixar em alta qualidade.",
+    title: "Preview antes de pagar",
+    text: "Veja a prévia protegida antes da compra. A versão final é liberada em alta qualidade.",
   },
 ];
 
 const trustItems = [
-  "Preview antes da compra",
+  "Modelo Futebol 2026",
+  "1 imagem por R$ 9,90",
+  "Pacote com 5 versões",
   "Pagamento seguro via Stripe",
-  "Entrega digital",
-  "Suporte em suporte@heromint.net",
 ];
 
 const faq = [
   {
-    question: "Preciso usar camisa de futebol na foto?",
-    answer: "Não. A HeroMint transforma sua foto comum em uma imagem esportiva com uniforme no estilo do tema escolhido.",
+    question: "A pessoa precisa estar com camisa de futebol?",
+    answer:
+      "Não. A ideia é transformar uma foto comum em um card com uniforme do Brasil e visual de jogador.",
   },
   {
-    question: "Posso escolher meu time?",
-    answer: "Sim. No formulário de criação você escolhe o time entre os clubes brasileiros disponíveis.",
+    question: "Posso usar foto de criança?",
+    answer:
+      "Sim, desde que você seja o responsável legal ou tenha autorização do responsável legal para usar a imagem.",
   },
   {
-    question: "A imagem é grátis?",
-    answer: "Você vê uma prévia protegida antes do pagamento. A imagem final em alta qualidade é liberada após a confirmação da compra.",
+    question: "O card final vem com moldura e dados?",
+    answer:
+      "Sim. A entrega final é o card completo do modelo Futebol 2026, com moldura, elementos visuais, nome e dados preenchidos no formulário.",
   },
   {
-    question: "Qual modelo devo escolher?",
-    answer: "Escolha Futebol 2026 para um card premium de jogador. Escolha Futebol Panini para uma figurinha mais clássica e nostálgica.",
+    question: "Por que não mostrar muitos modelos?",
+    answer:
+      "Para facilitar a decisão. Esta página foca no card Futebol 2026, que é o produto principal da campanha.",
   },
 ];
 
 export const metadata: Metadata = {
-  title: "Card de Futebol com IA | HeroMint",
+  title: "Card Futebol 2026 com IA | HeroMint",
   description:
-    "Transforme sua foto em card de jogador ou figurinha estilo Panini. Crie seu card de futebol com IA, veja a prévia e baixe em alta qualidade após o pagamento.",
+    "Transforme uma foto comum em um card Futebol 2026 com IA. Modelo premium com uniforme do Brasil, moldura esportiva, dados do jogador e preview antes da compra.",
   openGraph: {
-    title: "Crie seu card de futebol com IA",
+    title: "Crie seu Card Futebol 2026 com IA",
     description:
-      "Futebol 2026 e Futebol Panini: transforme sua foto em uma imagem esportiva premium.",
+      "Sua foto transformada em card premium de futebol com visual de coleção.",
     type: "website",
     url: "https://heromint.net/futebol",
-    images: ["https://heromint.net/hero-football-card-showcase.png"],
+    images: ["https://heromint.net/futebol/futebol-2026-modelo-premium.png"],
   },
 };
 
@@ -103,40 +119,39 @@ export default function FootballSalesPage() {
     <div className="overflow-hidden">
       <section className="relative pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="absolute inset-0">
-          <div className="absolute left-1/2 top-20 h-96 w-96 -translate-x-1/2 rounded-full bg-green-500/10 blur-3xl" />
-          <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-yellow-500/10 blur-3xl" />
+          <div className="absolute left-1/3 top-16 h-96 w-96 rounded-full bg-green-500/10 blur-3xl" />
+          <div className="absolute right-0 top-44 h-96 w-96 rounded-full bg-yellow-500/10 blur-3xl" />
         </div>
 
-        <div className="section-container relative z-10 grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="section-container relative z-10 grid items-center gap-12 lg:grid-cols-[1fr_0.95fr]">
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#FBBF24]/30 bg-[#FBBF24]/10 px-4 py-2">
-              <Zap className="h-4 w-4 text-[#FBBF24]" />
+              <Trophy className="h-4 w-4 text-[#FBBF24]" />
               <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#FBBF24]">
-                Card de futebol com IA
+                Modelo principal HeroMint
               </span>
             </div>
 
             <h1 className="font-impact text-[54px] leading-[0.92] tracking-wide text-white md:text-[76px] lg:text-[88px]">
-              TRANSFORME SUA FOTO
+              CARD FUTEBOL 2026
               <br />
-              EM UM <span className="gradient-text">CARD DE CRAQUE.</span>
+              COM SUA <span className="gradient-text">FOTO.</span>
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-[#CBD5E1]">
-              Crie uma imagem de futebol personalizada em poucos minutos. Escolha entre o visual
-              premium <strong className="text-white">Futebol 2026</strong> ou a nostalgia do{" "}
-              <strong className="text-white">Futebol Panini</strong>, veja a prévia e libere a versão
-              final em alta qualidade.
+              Transforme uma foto comum em um card premium de jogador, com uniforme do Brasil,
+              moldura esportiva, símbolos de campeonato e dados personalizados. Um presente
+              rápido, diferente e com forte apelo visual.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/criar/futebol-2026" className="btn-primary px-7 text-base animate-glow-pulse">
-                Criar Futebol 2026
+                Criar meu card Futebol 2026
                 <ArrowRight className="h-5 w-5" />
               </Link>
-              <Link href="/criar/futebol-panini" className="btn-secondary px-7 text-base">
-                Criar Panini
-                <Trophy className="h-4 w-4" />
+              <Link href="#antes-depois" className="btn-secondary px-7 text-base">
+                Ver exemplos
+                <Camera className="h-4 w-4" />
               </Link>
             </div>
 
@@ -150,15 +165,18 @@ export default function FootballSalesPage() {
             </div>
           </div>
 
-          <div className="relative min-h-[430px] md:min-h-[560px]">
-            <div className="absolute inset-0 rounded-full bg-yellow-400/10 blur-3xl" />
-            <Image
-              src="/hero-football-card-showcase.png"
-              alt="Exemplo de card de futebol HeroMint"
-              fill
-              priority
-              className="object-contain drop-shadow-2xl"
-            />
+          <div className="relative">
+            <div className="absolute inset-8 rounded-full bg-yellow-400/20 blur-3xl" />
+            <div className="relative mx-auto max-w-sm rounded-[2rem] border border-[#FBBF24]/25 bg-[#0F172A] p-3 shadow-2xl shadow-yellow-500/10">
+              <Image
+                src="/futebol/futebol-2026-modelo-premium.png"
+                alt="Modelo de card Futebol 2026 HeroMint"
+                width={1024}
+                height={1536}
+                priority
+                className="h-auto w-full rounded-[1.5rem] object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -166,8 +184,8 @@ export default function FootballSalesPage() {
       <section className="border-y border-[#1E293B] bg-[#0B1220] py-5">
         <div className="section-container grid grid-cols-2 gap-4 text-center md:grid-cols-4">
           {[
-            ["2", "modelos liberados"],
-            ["1 ou 5", "imagens por pacote"],
+            ["1", "modelo em destaque"],
+            ["2026", "visual esportivo"],
             ["Preview", "antes de pagar"],
             ["Alta", "qualidade final"],
           ].map(([value, label]) => (
@@ -179,155 +197,59 @@ export default function FootballSalesPage() {
         </div>
       </section>
 
-      <section className="py-18 md:py-24">
+      <section id="antes-depois" className="py-18 md:py-24">
         <div className="section-container">
           <div className="mx-auto mb-12 max-w-3xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#22C55E]">Escolha seu estilo</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#22C55E]">Antes e depois</p>
             <h2 className="mt-3 font-impact text-4xl tracking-wide text-white md:text-6xl">
-              DOIS FORMATOS PARA VENDER A <span className="gradient-text">MESMA EMOÇÃO</span>
+              DA FOTO SIMPLES PARA O <span className="gradient-text">CARD DE CRAQUE</span>
             </h2>
             <p className="mt-4 text-[#94A3B8]">
-              Você não compra só uma imagem. Você compra uma lembrança personalizada para postar,
-              presentear, imprimir e guardar.
+              Exemplos visuais para deixar claro o propósito: a pessoa envia uma foto comum e recebe
+              um card Futebol 2026 completo, com moldura, dados e visual de coleção.
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {products.map((product) => {
-              const Icon = product.icon;
+          <div className="grid gap-6 lg:grid-cols-2">
+            {beforeAfterExamples.map((example, index) => (
+              <BeforeAfterCard key={example.name} example={example} index={index} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[#1E293B] bg-[#0B1220] py-18 md:py-24">
+        <div className="section-container grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#FBBF24]">O que está sendo vendido</p>
+            <h2 className="mt-3 font-impact text-4xl tracking-wide text-white md:text-6xl">
+              UM CARD COMPLETO, NÃO APENAS UMA FOTO COM CAMISA.
+            </h2>
+            <p className="mt-4 text-[#94A3B8]">
+              A página agora mostra o produto certo: card Futebol 2026 com composição visual,
+              moldura, símbolos, nome, país, dados e acabamento de coleção. Isso evita o problema
+              de parecer que o resultado é só uma imagem solta.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {benefits.map((benefit) => {
+              const Icon = benefit.icon;
               return (
-                <Link
-                  key={product.name}
-                  href={product.href}
-                  className="group relative overflow-hidden rounded-3xl border border-[#1E293B] bg-[#0F172A] p-6 transition-all hover:-translate-y-1 hover:border-[#2563EB]/70 hover:shadow-2xl hover:shadow-[#2563EB]/10"
-                >
-                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${product.gradient}`} />
-                  <div className="flex items-start justify-between gap-4">
-                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${product.gradient}`}>
-                      <Icon className="h-7 w-7 text-white" />
-                    </div>
-                    <span className="rounded-full bg-[#1E293B] px-3 py-1 text-xs font-bold text-[#FBBF24]">
-                      {product.tag}
-                    </span>
+                <div key={benefit.title} className="rounded-3xl border border-[#1E293B] bg-[#0F172A] p-5">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2563EB]/15">
+                    <Icon className="h-6 w-6 text-[#60A5FA]" />
                   </div>
-                  <h3 className="mt-5 text-2xl font-bold text-white">{product.name}</h3>
-                  <p className="mt-1 text-sm font-semibold text-[#22C55E]">{product.price}</p>
-                  <p className="mt-4 text-sm leading-relaxed text-[#CBD5E1]">{product.description}</p>
-                  <ul className="mt-5 space-y-2">
-                    {product.bullets.map((bullet) => (
-                      <li key={bullet} className="flex items-center gap-2 text-sm text-[#94A3B8]">
-                        <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-6 inline-flex items-center gap-2 font-bold text-white">
-                    Criar este modelo
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </Link>
+                  <h3 className="font-bold text-white">{benefit.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#94A3B8]">{benefit.text}</p>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      <section className="py-18 md:py-24 bg-[#020617]">
-        <div className="section-container grid items-center gap-10 lg:grid-cols-2">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#FBBF24]">Antes e depois</p>
-            <h2 className="mt-3 font-impact text-4xl tracking-wide text-white md:text-6xl">
-              UMA FOTO NORMAL. UM RESULTADO DE <span className="gradient-text">COLEÇÃO.</span>
-            </h2>
-            <p className="mt-4 text-[#94A3B8]">
-              A proposta é simples: você envia a foto, informa nome, país, time e dados do card.
-              A HeroMint cria uma versão esportiva pronta para impressionar.
-            </p>
-            <div className="mt-6 grid gap-3">
-              {benefits.map((benefit) => {
-                const Icon = benefit.icon;
-                return (
-                  <div key={benefit.title} className="flex gap-4 rounded-2xl border border-[#1E293B] bg-[#0F172A] p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/15">
-                      <Icon className="h-5 w-5 text-[#60A5FA]" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white">{benefit.title}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-[#94A3B8]">{benefit.text}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl border border-[#1E293B] bg-[#0F172A] p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">Antes</span>
-                <span className="text-xs text-[#94A3B8]">foto enviada</span>
-              </div>
-              <div className="flex aspect-[3/4] items-center justify-center rounded-2xl border border-dashed border-[#334155] bg-[#020617] p-6 text-center">
-                <div>
-                  <Camera className="mx-auto h-12 w-12 text-[#64748B]" />
-                  <p className="mt-4 text-sm text-[#94A3B8]">Sua foto comum, frontal e bem iluminada.</p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-[#FBBF24]/30 bg-[#0F172A] p-4 shadow-2xl shadow-yellow-500/10">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">Depois</span>
-                <span className="text-xs text-[#FBBF24]">card HeroMint</span>
-              </div>
-              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#020617]">
-                <Image
-                  src="/ngenerated-images/FERNANDO-TEMPLATE.jpg"
-                  alt="Exemplo de resultado de card de futebol"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-18 md:py-24">
-        <div className="section-container">
-          <div className="rounded-[2rem] border border-[#1E293B] bg-gradient-to-br from-[#0F172A] to-[#020617] p-6 md:p-10">
-            <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#22C55E]">
-                  Feito para converter
-                </p>
-                <h2 className="mt-3 font-impact text-4xl tracking-wide text-white md:text-5xl">
-                  PRESENTE RÁPIDO, POSTAGEM FORTE, LEMBRANÇA ÚNICA.
-                </h2>
-                <p className="mt-4 text-[#94A3B8]">
-                  A landing foi pensada para quem chega do Google procurando uma ideia diferente:
-                  uma imagem personalizada, com tema de futebol, pronta para virar memória.
-                </p>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  ["Para pais e filhos", "Crie cards de crianças, adultos e torcedores apaixonados."],
-                  ["Para presente", "Uma surpresa diferente para aniversário, Dia dos Pais ou amigos."],
-                  ["Para redes sociais", "Imagem chamativa para postar no Instagram, WhatsApp e grupos."],
-                  ["Para coleção", "Escolha 1 imagem ou pacote com 5 versões diferentes."],
-                ].map(([title, text]) => (
-                  <div key={title} className="rounded-2xl border border-[#1E293B] bg-[#020617]/70 p-4">
-                    <Star className="mb-3 h-5 w-5 fill-[#FBBF24] text-[#FBBF24]" />
-                    <h3 className="font-bold text-white">{title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#94A3B8]">{text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="como-funciona" className="border-y border-[#1E293B] bg-[#0B1220] py-18 md:py-24">
+      <section id="como-funciona" className="py-18 md:py-24">
         <div className="section-container">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#60A5FA]">Como funciona</p>
@@ -337,9 +259,9 @@ export default function FootballSalesPage() {
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             {[
-              ["1", "Escolha o modelo", "Futebol 2026 para card premium ou Panini para figurinha clássica."],
-              ["2", "Envie a foto", "Preencha os dados do jogador e confirme a autorização de uso da imagem."],
-              ["3", "Baixe o resultado", "Veja a prévia, finalize o pagamento e acesse sua imagem final."],
+              ["1", "Preencha os dados", "Nome, país, time, nascimento, altura, peso e posição."],
+              ["2", "Envie a foto", "Use uma imagem frontal, bem iluminada e com autorização de uso."],
+              ["3", "Baixe o card final", "Veja a prévia, finalize o pagamento e acesse o arquivo em alta qualidade."],
             ].map(([step, title, text]) => (
               <div key={step} className="rounded-3xl border border-[#1E293B] bg-[#0F172A] p-6">
                 <div className="font-impact text-5xl text-[#2563EB]">{step}</div>
@@ -351,7 +273,7 @@ export default function FootballSalesPage() {
         </div>
       </section>
 
-      <section className="py-18 md:py-24">
+      <section className="border-y border-[#1E293B] bg-[#0B1220] py-18 md:py-24">
         <div className="section-container grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#FBBF24]">Dúvidas rápidas</p>
@@ -359,8 +281,7 @@ export default function FootballSalesPage() {
               TUDO CLARO ANTES DE COMEÇAR
             </h2>
             <p className="mt-4 text-[#94A3B8]">
-              A ideia é reduzir atrito: o visitante entende o produto, escolhe o estilo e vai direto
-              para a criação.
+              Menos opções, mais clareza. A campanha leva direto para o produto principal.
             </p>
           </div>
           <div className="space-y-3">
@@ -381,27 +302,123 @@ export default function FootballSalesPage() {
             <ShieldCheck className="h-8 w-8 text-[#22C55E]" />
           </div>
           <h2 className="font-impact text-5xl tracking-wide text-white md:text-7xl">
-            PRONTO PARA VER SUA VERSÃO DE CRAQUE?
+            PRONTO PARA CRIAR SEU CARD FUTEBOL 2026?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-[#CBD5E1]">
-            Comece pelo modelo mais popular ou escolha o estilo de figurinha. Em poucos minutos,
-            sua foto ganha cara de coleção.
+            Envie uma foto, preencha os dados do jogador e veja sua versão em card de futebol.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-8 flex justify-center">
             <Link href="/criar/futebol-2026" className="btn-primary px-8 text-base animate-glow-pulse">
-              Criar meu card agora
+              Começar agora
               <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link href="/criar/futebol-panini" className="btn-secondary px-8 text-base">
-              Quero estilo Panini
             </Link>
           </div>
           <div className="mt-6 inline-flex items-center gap-2 text-sm text-[#94A3B8]">
             <Clock className="h-4 w-4" />
-            Criação rápida, preview antes da compra e entrega digital.
+            Preview antes da compra e entrega digital após confirmação.
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function BeforeAfterCard({
+  example,
+  index,
+}: {
+  example: typeof beforeAfterExamples[number];
+  index: number;
+}) {
+  return (
+    <div className="rounded-[2rem] border border-[#1E293B] bg-[#0F172A] p-4 md:p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="font-bold text-white">Exemplo {index + 1}</h3>
+          <p className="text-xs text-[#94A3B8]">foto de referência + card simulado</p>
+        </div>
+        <span className="rounded-full bg-[#22C55E]/10 px-3 py-1 text-xs font-bold text-[#22C55E]">
+          Futebol 2026
+        </span>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-bold text-white">Antes</span>
+            <span className="text-xs text-[#94A3B8]">foto enviada</span>
+          </div>
+          <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#020617]">
+            <Image
+              src={example.before}
+              alt={`Foto antes de ${example.name}`}
+              fill
+              sizes="(min-width: 1024px) 280px, 50vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-bold text-white">Depois</span>
+            <span className="text-xs text-[#FBBF24]">card final</span>
+          </div>
+          <MockFootballCard example={example} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MockFootballCard({ example }: { example: typeof beforeAfterExamples[number] }) {
+  return (
+    <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border-2 border-[#FBBF24] bg-[#061222] shadow-2xl shadow-yellow-500/10">
+      <div className={`absolute inset-x-0 top-0 h-28 bg-gradient-to-br ${example.accent} opacity-30`} />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(34,197,94,0.25),transparent_34%),linear-gradient(160deg,rgba(2,6,23,0.2),rgba(2,6,23,0.95))]" />
+      <div className="absolute left-3 top-3 z-20 font-impact text-4xl tracking-wide text-[#FBBF24] drop-shadow">
+        2026
+      </div>
+      <div className="absolute right-3 top-3 z-20 text-right">
+        <Trophy className="ml-auto h-8 w-8 fill-white text-white" />
+        <div className="mt-1 font-impact text-xl leading-none text-white">COPA</div>
+        <div className="font-impact text-xl leading-none text-white">2026</div>
+      </div>
+      <div className="absolute right-3 top-24 z-20 flex flex-col items-center gap-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-green-700 text-lg">
+          🇧🇷
+        </div>
+        <div className="font-impact text-3xl tracking-wider text-white [writing-mode:vertical-rl]">BRA</div>
+      </div>
+
+      <div className="absolute inset-x-5 bottom-[28%] top-20 overflow-hidden rounded-t-[1.5rem]">
+        <Image
+          src={example.before}
+          alt={`Pessoa transformada em card ${example.name}`}
+          fill
+          sizes="(min-width: 1024px) 260px, 50vw"
+          className="object-cover object-top saturate-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#061222] via-transparent to-transparent" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 font-impact text-7xl text-green-500/90">
+          10
+        </div>
+      </div>
+
+      <div className="absolute inset-x-3 bottom-3 z-30 rounded-2xl border border-[#FBBF24]/50 bg-[#071426]/95 p-3 text-center">
+        <div className="font-impact text-3xl leading-none tracking-wide text-white">{example.name}</div>
+        <div className="mt-2 text-xs font-semibold text-[#CBD5E1]">
+          {example.birth} <span className="text-[#FBBF24]">|</span> {example.height}{" "}
+          <span className="text-[#FBBF24]">|</span> {example.weight}
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="rounded-md border border-white/20 bg-white px-2 py-1 text-[10px] font-black text-[#061222]">
+            FC
+          </div>
+          <div className="font-impact text-xl tracking-wide text-white">{example.team}</div>
+          <Star className="h-6 w-6 fill-[#FBBF24] text-[#FBBF24]" />
+        </div>
+      </div>
     </div>
   );
 }
