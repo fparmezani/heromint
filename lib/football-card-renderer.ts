@@ -72,13 +72,13 @@ function createFootball2026Overlay(formData: Record<string, string>) {
         <text x="68" y="193" text-anchor="middle" font-family="Arial, sans-serif" font-size="35" font-weight="800">2026</text>
       </g>
 
-      <g transform="translate(902 289)">
+      <g transform="translate(902 348)">
         <circle cx="0" cy="0" r="47" fill="#009C3B" stroke="#F8FAFC" stroke-width="4"/>
         <path d="M-34 0L0-25L34 0L0 25Z" fill="#FFDF00"/>
         <circle cx="0" cy="0" r="14" fill="#002776"/>
       </g>
-      <text x="919" y="510" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="63" font-weight="800"
-        transform="rotate(-90 919 510)">${countryCode}</text>
+      <text x="919" y="586" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="63" font-weight="800"
+        transform="rotate(-90 919 586)">${countryCode}</text>
 
       <rect x="77" y="1202" width="870" height="278" rx="32" fill="url(#panel)" stroke="#D4AF37" stroke-width="6"/>
       <text x="512" y="1284" text-anchor="middle" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="78" font-weight="800">${name}</text>

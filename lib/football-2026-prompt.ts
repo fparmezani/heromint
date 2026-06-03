@@ -90,7 +90,8 @@ LAYOUT:
 - Deep navy background with subtle green and yellow sports accents.
 - Top-left: clearly legible text "2026".
 - Top-right: generic white football trophy silhouette with clearly legible text "COPA 2026".
-- Right side: small circular {{PAIS}}-inspired flag and vertical text "{{PAIS_CODIGO}}".
+- Right side: small circular {{PAIS}}-inspired flag positioned clearly BELOW the trophy, with generous vertical spacing so it never overlaps the trophy or "COPA 2026" text.
+- Vertical text "{{PAIS_CODIGO}}" starts below the flag, aligned on the right side with clear spacing from both the flag and the trophy.
 - Lower panel: dark navy flat information area without enclosing border or gold outline.
 - Player name: "{{NOME}}".
 - Stats: "{{DATA_NASCIMENTO}} | {{ALTURA}} | {{PESO}}".
