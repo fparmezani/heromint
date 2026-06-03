@@ -27,7 +27,7 @@ export function FinalCTASection() {
           <p className="text-[#94A3B8] text-lg mb-8 max-w-2xl mx-auto">
             Escolha seu formato favorito e transforme suas fotos em imagens esportivas premium.
           </p>
-          <Link href="/temas" className="btn-primary px-8 text-base animate-glow-pulse inline-flex">
+          <Link href="/futebol" className="btn-primary px-8 text-base animate-glow-pulse inline-flex">
             <Zap className="w-5 h-5" />
             VER COLECAO FUTEBOL
           </Link>

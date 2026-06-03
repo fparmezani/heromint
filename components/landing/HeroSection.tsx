@@ -54,7 +54,7 @@ export function HeroSection() {
               transition={{ delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-3 mb-8"
             >
-              <Link href="/temas" className="btn-primary px-7 text-base animate-glow-pulse">
+              <Link href="/futebol" className="btn-primary px-7 text-base animate-glow-pulse">
                 <Zap className="w-5 h-5" />
                 Criar Meu Card de Futebol
               </Link>

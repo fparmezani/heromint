@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { label: "Como Funciona", href: "/#como-funciona" },
-  { label: "Colecao Futebol", href: "/#colecoes" },
+  { label: "Colecao Futebol", href: "/futebol" },
   { label: "Temas", href: "/temas" },
 ];
 
@@ -86,7 +86,7 @@ export function Navbar() {
                 Entrar
               </Link>
             )}
-            <Link href="/temas" className="btn-primary px-5 text-sm h-10 rounded-xl gap-1.5">
+            <Link href="/futebol" className="btn-primary px-5 text-sm h-10 rounded-xl gap-1.5">
               <Zap className="w-4 h-4" />
               Criar Card de Futebol
             </Link>
@@ -156,7 +156,7 @@ export function Navbar() {
                     Entrar
                   </Link>
                 )}
-                <Link href="/temas" className="btn-primary w-full text-sm h-12 rounded-xl" onClick={() => setMobileOpen(false)}>
+                <Link href="/futebol" className="btn-primary w-full text-sm h-12 rounded-xl" onClick={() => setMobileOpen(false)}>
                   <Zap className="w-4 h-4" />
                   Criar Card de Futebol
                 </Link>
