@@ -3,6 +3,7 @@ import { Inter, Bebas_Neue } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { CookieConsent } from "@/components/privacy/CookieConsent";
+import { MetaPixelConsent } from "@/components/privacy/MetaPixelConsent";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#020617] text-white antialiased">
         <AuthProvider>{children}</AuthProvider>
         <AnalyticsConsent />
+        <MetaPixelConsent />
         <CookieConsent />
       </body>
     </html>

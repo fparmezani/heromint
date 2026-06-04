@@ -76,7 +76,7 @@ export function CookieConsent() {
               />
               <PreferenceRow
                 title="Cookies de marketing"
-                description="Reservados para campanhas futuras. Não ativamos essa categoria sem sua autorização."
+                description="Permitem ativar o Meta Pixel para medir campanhas e conversões. Não ativamos essa categoria sem sua autorização."
                 checked={marketing}
                 onChange={setMarketing}
               />
