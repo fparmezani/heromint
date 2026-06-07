@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Bebas_Neue } from "next/font/google";
+import { FloatingWhatsAppButton } from "@/components/layout/FloatingWhatsAppButton";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { AnalyticsConsent } from "@/components/privacy/AnalyticsConsent";
 import { CookieConsent } from "@/components/privacy/CookieConsent";
@@ -43,6 +44,7 @@ export default function RootLayout({
         <AnalyticsConsent />
         <HotjarConsent />
         <MetaPixelConsent />
+        <FloatingWhatsAppButton />
         <CookieConsent />
       </body>
     </html>
