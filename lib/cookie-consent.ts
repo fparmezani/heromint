@@ -1,4 +1,6 @@
 export const GOOGLE_ANALYTICS_ID = "G-2PKPXM4HT1";
+export const HOTJAR_ID = 6726218;
+export const HOTJAR_VERSION = 6;
 export const META_PIXEL_ID = "1657411968860109";
 export const COOKIE_CONSENT_STORAGE_KEY = "heromint_cookie_consent";
 export const COOKIE_CONSENT_EVENT = "heromint-cookie-consent-updated";

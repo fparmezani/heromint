@@ -70,7 +70,7 @@ export function CookieConsent() {
               />
               <PreferenceRow
                 title="Cookies de análise"
-                description="Permitem ativar o Google Analytics para medir visitas e melhorar o site."
+                description="Permitem ativar Google Analytics e Hotjar para medir visitas e melhorar o site."
                 checked={analytics}
                 onChange={setAnalytics}
               />
