@@ -14,6 +14,7 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { getUserOrders, getOrCreateUser, type Order, type GeneratedImage, type User as AccountUser } from "@/lib/supabase";
 import { PACKAGE_CONFIG } from "@/types/collectible";
@@ -103,8 +104,11 @@ export default function MinhaContaPage() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<AccountUser | null>(null);
   const ordersCarouselRef = useRef<HTMLDivElement>(null);
+  const purchaseTrackedRef = useRef(false);
   const { data: session, status } = useSession();
   const email = session?.user?.email || "";
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
   const visibleOrders = orders.filter((order) => (
     order.generated_images.some((image) => !image.indisponivel)
   ));
@@ -182,6 +186,31 @@ export default function MinhaContaPage() {
       }
     };
   }, [orders, isLoggedIn, startPolling]);
+
+  // Dispara evento Purchase no Meta Pixel após pagamento confirmado
+  useEffect(() => {
+    if (
+      paymentStatus === "confirmed" &&
+      orders.length > 0 &&
+      !purchaseTrackedRef.current &&
+      typeof window !== "undefined" &&
+      typeof (window as Window & typeof globalThis & { fbq?: (...args: unknown[]) => void }).fbq === "function"
+    ) {
+      const latestPaid = [...orders]
+        .filter((o) => o.payment_status === "paid")
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+      if (latestPaid) {
+        (window as Window & typeof globalThis & { fbq: (...args: unknown[]) => void }).fbq("track", "Purchase", {
+          value: latestPaid.total_amount / 100,
+          currency: "BRL",
+          content_type: "product",
+          content_ids: [latestPaid.id],
+        });
+        purchaseTrackedRef.current = true;
+      }
+    }
+  }, [paymentStatus, orders]);
 
   const handleRefreshOrders = async () => {
     if (!user?.id) return;

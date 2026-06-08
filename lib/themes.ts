@@ -39,7 +39,6 @@ export const themes: Theme[] = [
       { key: "dataNascimento", label: "Data de Nascimento", type: "date", required: true },
       { key: "altura", label: "Altura (cm)", type: "number", placeholder: "175", required: true },
       { key: "peso", label: "Peso (kg)", type: "number", placeholder: "70", required: true },
-      { key: "posicao", label: "Posição", type: "select", options: ["Goleiro", "Lateral", "Zagueiro", "Volante", "Meia", "Atacante", "Centroavante"], required: true },
     ],
   },
   {
