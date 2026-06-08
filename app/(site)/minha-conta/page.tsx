@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   User, 
@@ -33,10 +33,8 @@ function getDownloadExtension(contentType: string, imageCount: number) {
 
 function OrderImageCarousel({
   order,
-  onImageUnavailable,
 }: {
   order: OrderWithImages;
-  onImageUnavailable: (orderId: string, imageId: string) => void;
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const images = order.generated_images.filter((image) => !image.indisponivel);
@@ -99,6 +97,27 @@ function OrderImageCarousel({
 }
 
 export default function MinhaContaPage() {
+  return (
+    <Suspense fallback={<MinhaContaFallback />}>
+      <MinhaContaContent />
+    </Suspense>
+  );
+}
+
+function MinhaContaFallback() {
+  return (
+    <div className="min-h-screen bg-[#0A0E1A] pt-24 pb-16">
+      <div className="section-container">
+        <div className="mx-auto flex max-w-md items-center justify-center gap-2 rounded-lg border border-[#1E293B] bg-[#0F172A] px-4 py-3 text-sm text-[#94A3B8]">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Carregando sua conta...
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MinhaContaContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [orders, setOrders] = useState<OrderWithImages[]>([]);
   const [loading, setLoading] = useState(false);
@@ -267,25 +286,6 @@ export default function MinhaContaPage() {
     } catch (error) {
       alert("Erro no download: " + error);
     }
-  };
-
-  const handleImageUnavailable = (orderId: string, imageId: string) => {
-    setOrders((currentOrders) => currentOrders.map((order) => (
-      order.id === orderId
-        ? {
-            ...order,
-            generated_images: order.generated_images.filter((image) => image.id !== imageId),
-          }
-        : order
-    )));
-
-    void fetch("/api/generated-images/mark-unavailable", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageId }),
-    }).catch((error) => {
-      console.error("Erro ao marcar imagem indisponível:", error);
-    });
   };
 
   const formatDate = (dateString: string) => {
@@ -577,7 +577,7 @@ export default function MinhaContaPage() {
 
                 {order.payment_status === 'paid' && order.generated_images.some((image) => !image.indisponivel) && (
                   <div className="pt-4 border-t border-[#1E293B]">
-                    <OrderImageCarousel order={order} onImageUnavailable={handleImageUnavailable} />
+                    <OrderImageCarousel order={order} />
                     <div className="flex gap-3">
                       <button
                         onClick={() => handleDownloadImages(order)}
