@@ -18,7 +18,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
+            <Link href="/futebol" className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>

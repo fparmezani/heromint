@@ -310,7 +310,7 @@ export default function MinhaContaPage() {
 
         <div className="section-container relative z-10">
           <Link
-            href="/"
+            href="/futebol"
             className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors mb-8 text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -378,7 +378,7 @@ export default function MinhaContaPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link
-              href="/"
+              href="/futebol"
               className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -399,7 +399,7 @@ export default function MinhaContaPage() {
               setIsLoggedIn(false);
               setOrders([]);
               localStorage.removeItem("heromint_user_email");
-              void signOut({ callbackUrl: "/" });
+              void signOut({ callbackUrl: "/futebol" });
             }}
             className="text-[#94A3B8] hover:text-white transition-colors text-sm"
           >

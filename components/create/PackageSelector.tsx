@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Star, Zap, Crown, Heart } from "lucide-react";
+import { Check, Star, Zap, Crown, Heart, Gift } from "lucide-react";
 import type { PackageType } from "@/types/collectible";
 import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 
@@ -21,7 +22,36 @@ const PACKAGE_POPULAR: Partial<Record<PackageType, boolean>> = {
   premium: true,
 };
 
+interface FirstPurchasePromotion {
+  eligible: boolean;
+  coupon: string;
+  discountPercent: number;
+}
+
 export function PackageSelector({ value, onChange }: PackageSelectorProps) {
+  const [promotion, setPromotion] = useState<FirstPurchasePromotion | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch("/api/promotions/first-purchase")
+      .then((response) => response.json())
+      .then((result: FirstPurchasePromotion) => {
+        if (isMounted && result.eligible) {
+          setPromotion(result);
+        }
+      })
+      .catch(() => {
+        // The promotion badge is optional; package selection should keep working.
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const showFirstPurchaseDiscount = Boolean(promotion?.eligible);
+
   return (
     <div className="grid grid-cols-1 gap-4">
       {(Object.entries(PACKAGE_CONFIG) as [PackageType, typeof PACKAGE_CONFIG[PackageType]][])
@@ -30,6 +60,7 @@ export function PackageSelector({ value, onChange }: PackageSelectorProps) {
         const Icon = PACKAGE_ICONS[key];
         const isSelected = value === key;
         const isPopular = PACKAGE_POPULAR[key];
+        const discountedPrice = Math.round(pkg.price * 0.6);
 
         return (
           <motion.button
@@ -51,7 +82,13 @@ export function PackageSelector({ value, onChange }: PackageSelectorProps) {
               </div>
             )}
 
-            <div className="flex items-center gap-4">
+            {showFirstPurchaseDiscount && (
+              <div className="absolute -right-2 top-4 rotate-3 rounded-l-full rounded-r-md bg-[#FBBF24] px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-[#0F172A] shadow-[0_10px_28px_rgba(251,191,36,0.25)]">
+                {promotion?.discountPercent}% OFF
+              </div>
+            )}
+
+            <div className={`flex items-center gap-4 ${showFirstPurchaseDiscount ? "mt-5" : ""}`}>
               {/* Icon */}
               <div
                 className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
@@ -65,11 +102,35 @@ export function PackageSelector({ value, onChange }: PackageSelectorProps) {
               <div className="flex-1">
                 <div className="flex items-baseline justify-between">
                   <p className="font-bold text-white text-base">{pkg.label}</p>
-                  <p className="font-impact text-2xl gradient-text">
-                    R$ {(pkg.price / 100).toFixed(2).replace(".", ",")}
-                  </p>
+                  <div className="text-right">
+                    {showFirstPurchaseDiscount ? (
+                      <>
+                        <p className="text-xs font-bold text-[#94A3B8] line-through">
+                          R$ {(pkg.price / 100).toFixed(2).replace(".", ",")}
+                        </p>
+                        <p className="font-impact text-2xl text-[#FBBF24]">
+                          R$ {(discountedPrice / 100).toFixed(2).replace(".", ",")}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="font-impact text-2xl gradient-text">
+                        R$ {(pkg.price / 100).toFixed(2).replace(".", ",")}
+                      </p>
+                    )}
+                    {showFirstPurchaseDiscount && (
+                      <p className="mt-0.5 inline-flex items-center justify-end gap-1 text-[11px] font-bold text-[#FBBF24]">
+                        <Gift className="h-3 w-3" />
+                        Cupom {promotion?.coupon}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <p className="text-[#94A3B8] text-sm mt-0.5">{pkg.description}</p>
+                {showFirstPurchaseDiscount && (
+                  <p className="mt-2 text-xs font-medium text-[#CBD5E1]">
+                    Voce tem 40% de desconto na primeira compra.
+                  </p>
+                )}
               </div>
 
               {/* Checkmark */}

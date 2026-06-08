@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   generateMultipleCollectibleImages,
   MAX_FAMILY_REFERENCE_PHOTOS,
@@ -6,6 +8,7 @@ import {
 import { persistGeneratedImage } from "@/lib/generated-image-storage";
 import { createGeneratedImageToken } from "@/lib/generated-image-token";
 import { shouldBypassWatermark } from "@/lib/environment";
+import { checkGenerationRateLimit, getGenerationClientIp } from "@/lib/generation-rate-limit";
 import { hasClubCrest } from "@/lib/football-2026-prompt";
 import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
@@ -19,6 +22,35 @@ export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID().slice(0, 8);
 
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Faca login com Google para gerar seu preview.", errorCode: requestId },
+        { status: 401 }
+      );
+    }
+
+    const clientIp = getGenerationClientIp(request);
+    const rateLimit = checkGenerationRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      const resetDate = new Date(rateLimit.resetAt).toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+      });
+
+      return NextResponse.json(
+        {
+          error: `Limite diario de previews atingido. Tente novamente apos ${resetDate}.`,
+          errorCode: requestId,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.max(1, Math.ceil((rateLimit.resetAt - Date.now()) / 1000)).toString(),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { theme, formData, photoBase64, photosBase64, packageType } = body;
 

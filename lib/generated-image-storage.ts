@@ -119,8 +119,8 @@ function createWatermarkSvg(width: number, height: number, traceId: string) {
 
 export async function generateProtectedPreview(imageBuffer: Buffer, traceId: string) {
   const resizedPreview = await sharp(imageBuffer)
-    .resize({ width: 768, height: 1152, fit: "inside", withoutEnlargement: true })
-    .blur(1.1)
+    .resize({ width: 560, height: 840, fit: "inside", withoutEnlargement: true })
+    .blur(1.4)
     .toBuffer();
   const metadata = await sharp(resizedPreview).metadata();
   const width = metadata.width || 1024;
@@ -128,7 +128,7 @@ export async function generateProtectedPreview(imageBuffer: Buffer, traceId: str
 
   return sharp(resizedPreview)
     .composite([{ input: createWatermarkSvg(width, height, traceId), top: 0, left: 0 }])
-    .jpeg({ quality: 66, mozjpeg: true })
+    .jpeg({ quality: 48, mozjpeg: true })
     .toBuffer();
 }
 

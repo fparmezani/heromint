@@ -70,7 +70,7 @@ export function PaymentButton({
           `🎉 Imagens entregues com sucesso!\n\n` +
           `📁 Pasta: ${result.delivery.driveFolder}\n` +
           `📸 Total: ${result.delivery.totalImages} imagens\n\n` +
-          `Verifique seu Google Drive!`
+          `Acesse a pagina de entrega para baixar seus arquivos.`
         );
       } else {
         alert("Erro na entrega: " + result.error);

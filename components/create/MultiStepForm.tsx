@@ -5,6 +5,7 @@ import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Wand2 } from "lucide-react";
 import { Stepper } from "./Stepper";
@@ -17,6 +18,7 @@ import type { PackageType } from "@/types/collectible";
 
 const STEPS = ["Dados Principais", "Detalhes", "Sua Foto", "Pacote"];
 const MAX_FAMILY_REFERENCE_PHOTOS = 5;
+const THREE_DIGIT_FIELDS = new Set(["altura", "peso"]);
 
 interface MultiStepFormProps {
   theme: Theme;
@@ -29,6 +31,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   const [hasImageAuthorization, setHasImageAuthorization] = useState(false);
   const [packageType, setPackageType] = useState<PackageType>("individual");
   const router = useRouter();
+  const { status } = useSession();
   const {
     isGenerating,
     currentStep: generatingStep,
@@ -97,6 +100,11 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
 
   const handleSubmit = async () => {
     try {
+      if (status !== "authenticated") {
+        await signIn("google", { callbackUrl: window.location.href });
+        return;
+      }
+
       const allFormData = {
         ...formData,
         ...(form0.getValues() as Record<string, string>),
@@ -162,6 +170,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
 
   const renderField = (field: typeof theme.fields[0], form: ReturnType<typeof useForm<FieldValues>>) => {
     const error = form.formState.errors[field.key];
+    const isThreeDigitField = THREE_DIGIT_FIELDS.has(field.key);
 
     return (
       <div key={field.key} className="flex flex-col gap-1.5">
@@ -182,7 +191,16 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
         ) : (
           <input
             {...form.register(field.key)}
-            type={field.type}
+            type={isThreeDigitField ? "text" : field.type}
+            inputMode={isThreeDigitField ? "numeric" : undefined}
+            maxLength={isThreeDigitField ? 3 : undefined}
+            pattern={isThreeDigitField ? "[0-9]*" : undefined}
+            onInput={isThreeDigitField ? (event) => {
+              const input = event.currentTarget;
+              const value = input.value.replace(/\D/g, "").slice(0, 3);
+              input.value = value;
+              form.setValue(field.key, value, { shouldDirty: true, shouldValidate: true });
+            } : undefined}
             placeholder={field.placeholder}
             className="w-full h-12 px-4 rounded-xl bg-[#0F172A] border border-[#1E293B] text-white placeholder-[#94A3B8]/50 focus:outline-none focus:border-[#2563EB] transition-colors"
           />

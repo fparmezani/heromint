@@ -11,7 +11,7 @@ function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/futebol";
 
   useEffect(() => {
     // Verifica se já está logado
@@ -45,7 +45,7 @@ function SignInContent() {
       {/* Header */}
       <div className="p-6">
         <Link
-          href="/"
+          href="/futebol"
           className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -115,7 +115,7 @@ function SignInContent() {
                 </h3>
                 {[
                   { icon: Shield, text: "Entrega segura das suas imagens" },
-                  { icon: Star, text: "Imagens salvas no seu Google Drive" },
+                  { icon: Star, text: "Imagem em alta resolucao apos a compra" },
                   { icon: Zap, text: "Acesso rápido aos seus cards" },
                 ].map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-3 text-[#94A3B8] text-sm">

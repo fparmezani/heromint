@@ -6,6 +6,8 @@ import { readGeneratedImageToken } from "@/lib/generated-image-token";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getPaymentLink } from "@/lib/payment-config";
+import { getGenerationClientIp } from "@/lib/generation-rate-limit";
+import { markPurchaseStartedForIp } from "@/lib/purchase-ip-tracker";
 
 interface GeneratedPaymentImage {
   imageUrl: string;
@@ -42,6 +44,14 @@ export async function POST(request: NextRequest) {
       isDevMode = false
     } = requestBody;
     const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Faca login com Google para continuar o pagamento." },
+        { status: 401 }
+      );
+    }
+
     const effectiveUserEmail = session?.user?.email || userEmail;
     const effectiveUserName = session?.user?.name || userName;
 
@@ -107,6 +117,7 @@ export async function POST(request: NextRequest) {
       total_amount: packageConfig.price,
       form_data: formData,
     });
+    markPurchaseStartedForIp(getGenerationClientIp(request));
 
     if (generatedImages && generatedImages.length > 0 && !isSandboxEnvironment() && !isDevMode) {
       const imageRecords = (generatedImages as GeneratedPaymentImage[]).map((img, index) => ({

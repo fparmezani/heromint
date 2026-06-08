@@ -13,7 +13,7 @@ export function LegalPage({
   return (
     <section className="section-container py-16 md:py-20">
       <div className="mx-auto max-w-4xl rounded-3xl border border-[#1E293B] bg-[#0F172A] p-6 md:p-10">
-        <Link href="/" className="text-sm text-[#60A5FA] hover:underline">
+        <Link href="/futebol" className="text-sm text-[#60A5FA] hover:underline">
           Voltar para a página inicial
         </Link>
         <h1 className="mt-5 text-3xl font-bold text-white md:text-4xl">{title}</h1>
@@ -25,4 +25,3 @@ export function LegalPage({
     </section>
   );
 }
-

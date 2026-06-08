@@ -28,7 +28,7 @@ export async function requireAdminPage() {
   }
 
   if (!isAdminEmail(session.user.email)) {
-    redirect("/");
+    redirect("/futebol");
   }
 
   return session;

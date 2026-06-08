@@ -8,7 +8,7 @@ import { LogOut, Menu, UserCircle, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
-  { label: "Como Funciona", href: "/#como-funciona" },
+  { label: "Como Funciona", href: "/futebol#como-funciona" },
   { label: "Colecao Futebol", href: "/futebol" },
   { label: "Temas", href: "/temas" },
 ];
@@ -25,7 +25,7 @@ export function Navbar() {
       <div className="section-container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/futebol" className="flex items-center gap-2 group">
             <Image
               src="/heromint-logo-cards.png"
               alt="HeroMint"
@@ -74,7 +74,7 @@ export function Navbar() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={() => signOut({ callbackUrl: "/futebol" })}
                   className="p-2.5 text-[#94A3B8] hover:text-white transition-colors"
                   aria-label="Sair"
                 >
@@ -144,7 +144,7 @@ export function Navbar() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={() => signOut({ callbackUrl: "/futebol" })}
                       className="btn-secondary w-full text-sm h-12 rounded-xl gap-2"
                     >
                       <LogOut className="w-4 h-4" />

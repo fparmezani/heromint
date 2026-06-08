@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, CreditCard, Shield, Star, Loader2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { CardTemplate } from "@/components/preview/CardTemplate";
+import { FirstPurchaseCouponBanner } from "@/components/payment/FirstPurchaseCouponBanner";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 import { hasPaymentLink } from "@/lib/payment-config";
 import { isSandboxEnvironment, shouldBypassWatermark } from "@/lib/environment";
-// import { useSession, signIn } from "next-auth/react"; // Descomente após instalar next-auth
 
 interface PreviewData {
   collectibleId: string;
@@ -37,12 +37,10 @@ export default function PreviewPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isTestingPayment, setIsTestingPayment] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
-  const [userName, setUserName] = useState("");
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const { data: session } = useSession();
-  const paymentEmail = session?.user?.email || userEmail;
-  const paymentUserName = session?.user?.name || userName;
+  const paymentEmail = session?.user?.email;
+  const paymentUserName = session?.user?.name;
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -166,43 +164,9 @@ export default function PreviewPage() {
     }
   };
 
-  const handleLoginSubmit = () => {
-    if (!userEmail || !userEmail.includes("@")) {
-      alert("Por favor, digite um email válido");
-      return;
-    }
-    
-    // Salva dados do usuário
-    localStorage.setItem("heromint_user_email", userEmail);
-    if (userName) {
-      localStorage.setItem("heromint_user_name", userName);
-    }
-    
-    setShowLoginForm(false);
-    handlePaymentFlow();
+  const handleGoogleSignIn = () => {
+    void signIn("google", { callbackUrl: window.location.href });
   };
-
-  // Carrega dados salvos do usuário
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const savedEmail = localStorage.getItem("heromint_user_email");
-      const savedName = localStorage.getItem("heromint_user_name");
-      if (session?.user?.email) {
-        setUserEmail(session.user.email);
-        localStorage.setItem("heromint_user_email", session.user.email);
-      } else if (savedEmail) {
-        setUserEmail(savedEmail);
-      }
-      if (session?.user?.name) {
-        setUserName(session.user.name);
-        localStorage.setItem("heromint_user_name", session.user.name);
-      } else if (savedName) {
-        setUserName(savedName);
-      }
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [session?.user?.email, session?.user?.name]);
 
   if (loading) {
     return (
@@ -327,7 +291,7 @@ export default function PreviewPage() {
             </div>
 
             <p className="text-xs text-[#94A3B8] text-center max-w-xs">
-              Com IA real, sua foto será transformada em arte épica no estilo {data.themeName} após o pagamento
+              Esta é uma versão protegida do seu card. Após o pagamento, você baixa a imagem em alta resolução sem marca d&apos;água.
             </p>
           </motion.div>
 
@@ -343,7 +307,7 @@ export default function PreviewPage() {
                 SEU CARD ESTÁ PRONTO!
               </h1>
               <p className="text-[#94A3B8]">
-                Finalize o pagamento para gerar a versão definitiva com IA e baixar em alta resolução.
+                Finalize o pagamento para liberar a imagem em alta resolução sem marca d&apos;água.
               </p>
               {hasPaymentLink(data.packageType) && (
                 <div className="mt-3 p-3 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg">
@@ -363,6 +327,8 @@ export default function PreviewPage() {
                 </div>
               )}
             </div>
+
+            <FirstPurchaseCouponBanner />
 
             {/* Order details */}
             <div className="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5 flex flex-col gap-0">
@@ -424,7 +390,7 @@ export default function PreviewPage() {
                   <CreditCard className="w-5 h-5" />
                   {paymentEmail ?
                     `Finalizar Pagamento - R$ ${pkg ? (pkg.price / 100).toFixed(2).replace(".", ",") : "0,00"}` :
-                    "Fazer Login e Pagar"
+                    "Entrar com Google e Pagar"
                   }
                 </>
               )}
@@ -489,40 +455,13 @@ export default function PreviewPage() {
               className="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-8 max-w-md w-full"
             >
               <h3 className="text-2xl font-bold text-white mb-4 text-center">
-                Fazer Login
+                Entrar com Google
               </h3>
               <p className="text-[#94A3B8] text-center mb-6">
-                Digite seus dados para continuar com o pagamento
+                Para proteger sua compra e entregar a imagem corretamente, entre com sua conta Google.
               </p>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Nome (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Seu nome"
-                    className="w-full px-4 py-3 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#94A3B8] focus:border-[#2563EB] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={userEmail}
-                    onChange={(e) => setUserEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    required
-                    className="w-full px-4 py-3 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#94A3B8] focus:border-[#2563EB] focus:outline-none"
-                  />
-                </div>
-
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowLoginForm(false)}
@@ -531,18 +470,17 @@ export default function PreviewPage() {
                     Cancelar
                   </button>
                   <button
-                    onClick={handleLoginSubmit}
-                    disabled={!userEmail}
+                    onClick={handleGoogleSignIn}
                     className="flex-1 py-3 px-4 bg-[#2563EB] text-white rounded-lg hover:bg-[#1D4ED8] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Continuar
+                    Entrar com Google
                   </button>
                 </div>
               </div>
 
               <div className="mt-6 pt-6 border-t border-[#1E293B] text-center">
                 <p className="text-[#64748B] text-xs">
-                  Seus dados serão usados apenas para entrega das imagens
+                  Login por email e senha não está disponível.
                 </p>
               </div>
             </motion.div>

@@ -170,7 +170,7 @@ export default function EntregaPage() {
       <div className="min-h-screen pt-24 pb-16 bg-[#0A0E1A]">
         <div className="section-container">
           <Link
-            href="/"
+            href="/futebol"
             className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors mb-8 text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -218,7 +218,7 @@ export default function EntregaPage() {
 
       <div className="section-container relative z-10">
         <Link
-          href="/"
+          href="/futebol"
           className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors mb-8 text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
