@@ -108,6 +108,25 @@ function uniqueCandidatesByEmail(candidates: RecoveryCandidate[]) {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
+async function getRecentlySentEmails() {
+  const { data, error } = await supabaseAdmin
+    .from("recovery_email_events")
+    .select("user_email")
+    .eq("status", "sent")
+    .gte("email_sent_at", getDateDaysAgo(RECOVERY_COOLDOWN_DAYS).toISOString());
+
+  if (error) {
+    if (isMissingRecoveryTableError(error)) return new Set<string>();
+    throw error;
+  }
+
+  return new Set((data || []).map((event) => normalizeEmail(event.user_email)));
+}
+
+function excludeRecentlySent(candidates: RecoveryCandidate[], recentlySentEmails: Set<string>) {
+  return candidates.filter((candidate) => !recentlySentEmails.has(normalizeEmail(candidate.user_email)));
+}
+
 function isMissingRecoveryTableError(error: unknown) {
   if (!error || typeof error !== "object") return false;
 
@@ -311,6 +330,7 @@ export async function getRecoveryDashboardData(): Promise<RecoveryDashboardData>
     recentEvents,
     eligibleOrders,
     pendingOrders,
+    recentlySentEmails,
   ] = await Promise.all([
     supabaseAdmin
       .from("recovery_email_events")
@@ -351,6 +371,7 @@ export async function getRecoveryDashboardData(): Promise<RecoveryDashboardData>
       .limit(20),
     getPendingOrderCandidates(eligibleCutoff),
     getPendingOrderCandidates(undefined, 200),
+    getRecentlySentEmails(),
   ]);
 
   const errors = [sentToday.error, sentLast7Days.error, pendingEligible.error, pendingTotal.error, eligibleEvents.error, pendingEvents.error, recentEvents.error]
@@ -360,9 +381,9 @@ export async function getRecoveryDashboardData(): Promise<RecoveryDashboardData>
     return {
       sentToday: 0,
       sentLast7Days: 0,
-      pendingEligible: eligibleOrders.length,
-      pendingTotal: pendingOrders.length,
-      eligibleCandidates: eligibleOrders,
+      pendingEligible: excludeRecentlySent(eligibleOrders, recentlySentEmails).length,
+      pendingTotal: excludeRecentlySent(pendingOrders, recentlySentEmails).length,
+      eligibleCandidates: excludeRecentlySent(eligibleOrders, recentlySentEmails),
       recentEvents: [],
       setupRequired: true,
     };
@@ -378,17 +399,23 @@ export async function getRecoveryDashboardData(): Promise<RecoveryDashboardData>
   const pendingEventCandidates = ((pendingEvents.data || []) as RecoveryEmailEvent[])
     .map(mapEventToCandidate)
     .filter((candidate) => isRecoverableEmail(candidate.user_email));
-  const eligibleCandidates = uniqueCandidatesByEmail([...eventCandidates, ...eligibleOrders])
+  const eligibleCandidates = excludeRecentlySent(
+    uniqueCandidatesByEmail([...eventCandidates, ...eligibleOrders]),
+    recentlySentEmails
+  )
     .slice(0, RECOVERY_LIMIT_PER_RUN);
 
   return {
     sentToday: sentToday.count || 0,
     sentLast7Days: sentLast7Days.count || 0,
     pendingEligible: eligibleCandidates.length,
-    pendingTotal: uniqueCandidatesByEmail([
-      ...pendingEventCandidates,
-      ...pendingOrders,
-    ]).length,
+    pendingTotal: excludeRecentlySent(
+      uniqueCandidatesByEmail([
+        ...pendingEventCandidates,
+        ...pendingOrders,
+      ]),
+      recentlySentEmails
+    ).length,
     eligibleCandidates,
     recentEvents: (recentEvents.data || []) as RecoveryEmailEvent[],
     setupRequired: false,
