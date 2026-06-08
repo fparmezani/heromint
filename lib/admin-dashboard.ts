@@ -3,7 +3,9 @@ import { supabaseAdmin, type Order } from "@/lib/supabase";
 type DashboardOrder = Pick<
   Order,
   "id" | "theme_name" | "package_type" | "total_amount" | "payment_status" | "created_at"
->;
+> & {
+  users?: { email?: string | null } | { email?: string | null }[] | null;
+};
 
 export interface AdminDashboardData {
   cardsCreated: number;
@@ -67,7 +69,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     await Promise.all([
       supabaseAdmin
         .from("orders")
-        .select("id, theme_name, package_type, total_amount, payment_status, created_at")
+        .select("id, theme_name, package_type, total_amount, payment_status, created_at, users!orders_user_id_fkey (email)")
         .order("created_at", { ascending: false }),
       getAvailableImages(),
     ]);

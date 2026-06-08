@@ -38,6 +38,14 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 });
 const dateFormatter = new Intl.DateTimeFormat("pt-BR");
 
+function getOrderEmail(order: {
+  id: string;
+  users?: { email?: string | null } | { email?: string | null }[] | null;
+}) {
+  const user = Array.isArray(order.users) ? order.users[0] : order.users;
+  return user?.email || `${order.id.slice(0, 8)}...`;
+}
+
 export default async function AdminPage() {
   await requireAdminPage();
   const dashboard = await getAdminDashboardData();
@@ -131,7 +139,7 @@ export default async function AdminPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#1E293B]">
-                  {["ID", "Tema", "Pacote", "Valor", "Status", "Data"].map((heading) => (
+                  {["Email", "Tema", "Pacote", "Valor", "Status", "Data"].map((heading) => (
                     <th key={heading} className="px-5 py-3 text-left text-xs font-bold text-[#94A3B8] uppercase tracking-wider">
                       {heading}
                     </th>
@@ -141,7 +149,7 @@ export default async function AdminPage() {
               <tbody className="divide-y divide-[#1E293B]">
                 {dashboard.recentOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-[#1E293B]/50 transition-colors">
-                    <td className="px-5 py-4 text-[#94A3B8] text-xs font-mono">{order.id.slice(0, 8)}...</td>
+                    <td className="px-5 py-4 text-[#CBD5E1] text-sm">{getOrderEmail(order)}</td>
                     <td className="px-5 py-4 text-white text-sm">{order.theme_name}</td>
                     <td className="px-5 py-4 text-[#94A3B8] text-sm">{PACKAGE_LABELS[order.package_type]}</td>
                     <td className="px-5 py-4 text-white font-bold text-sm">{currencyFormatter.format(order.total_amount / 100)}</td>
