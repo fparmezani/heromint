@@ -14,6 +14,8 @@ import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 import { isThemeAvailable } from "@/lib/themes";
 import { normalizeReferenceImages } from "@/lib/reference-image";
+import { getThemeById } from "@/lib/themes";
+import { recordGeneratedPreviewForRecovery } from "@/lib/recovery-emails";
 
 // Allow up to 5 minutes for Replicate to generate the image
 export const maxDuration = 300;
@@ -190,6 +192,15 @@ export async function POST(request: NextRequest) {
         }
       })
     );
+    await recordGeneratedPreviewForRecovery({
+      user_email: session.user.email,
+      user_name: session.user.name,
+      collectible_id: collectibleId,
+      theme_name: getThemeById(theme)?.name || theme,
+      package_type: packageType,
+      form_data: formData,
+      client_ip: clientIp,
+    });
 
     return NextResponse.json({
       collectibleId,

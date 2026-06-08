@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BarChart3, CreditCard, Users, TrendingUp, Settings } from "lucide-react";
+import { BarChart3, CreditCard, Users, TrendingUp, Settings, Mail } from "lucide-react";
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-auth";
 import { getAdminDashboardData } from "@/lib/admin-dashboard";
@@ -85,13 +85,22 @@ export default async function AdminPage() {
             <p className="text-[#94A3B8] text-sm mt-1">HeroMint - Visao geral da plataforma</p>
           </div>
 
-          <Link
-            href="/admin/configuracoes"
-            className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition-colors"
-          >
-            <Settings className="w-4 h-4" />
-            Configuracoes
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/recuperacao"
+              className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg transition-colors"
+            >
+              <Mail className="w-4 h-4" />
+              Recuperacao
+            </Link>
+            <Link
+              href="/admin/configuracoes"
+              className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Configuracoes
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
