@@ -45,12 +45,12 @@ export function CookieConsent() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[100] p-4 md:p-6">
-      <div className="mx-auto max-w-4xl rounded-2xl border border-[#334155] bg-[#0F172A] p-5 shadow-2xl shadow-black/50">
-        <div className="flex flex-col gap-4">
+    <div className="fixed inset-x-0 bottom-0 z-[100] p-3 md:p-6">
+      <div className="mx-auto max-w-4xl rounded-xl border border-[#334155] bg-[#0F172A] p-4 shadow-2xl shadow-black/50 sm:rounded-2xl sm:p-5">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div>
-            <h2 className="text-lg font-bold text-white">Privacidade e cookies</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#CBD5E1]">
+            <h2 className="text-base font-bold text-white sm:text-lg">Privacidade e cookies</h2>
+            <p className="mt-1.5 text-xs leading-relaxed text-[#CBD5E1] sm:mt-2 sm:text-sm">
               Usamos cookies necessários para o funcionamento do site. Com sua autorização,
               também usamos cookies de análise para entender o uso da HeroMint. Você pode
               aceitar, recusar ou configurar suas preferências. Consulte nossa{" "}
@@ -83,12 +83,12 @@ export function CookieConsent() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
             {!customizing && (
               <button
                 type="button"
                 onClick={() => setCustomizing(true)}
-                className="rounded-xl border border-[#334155] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1E293B]"
+                className="min-h-11 rounded-xl border border-[#334155] px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#1E293B] sm:px-4 sm:py-3 sm:text-sm"
               >
                 Configurar
               </button>
@@ -96,7 +96,7 @@ export function CookieConsent() {
             <button
               type="button"
               onClick={() => persist({ necessary: true, analytics: false, marketing: false })}
-              className="rounded-xl border border-[#334155] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1E293B]"
+              className="min-h-11 rounded-xl border border-[#334155] px-3 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#1E293B] sm:px-4 sm:py-3 sm:text-sm"
             >
               Recusar opcionais
             </button>
@@ -104,7 +104,7 @@ export function CookieConsent() {
               <button
                 type="button"
                 onClick={() => persist({ necessary: true, analytics, marketing })}
-                className="rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1D4ED8]"
+                className="col-span-2 min-h-11 rounded-xl bg-[#2563EB] px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#1D4ED8] sm:px-4 sm:py-3 sm:text-sm"
               >
                 Salvar preferências
               </button>
@@ -112,7 +112,7 @@ export function CookieConsent() {
               <button
                 type="button"
                 onClick={() => persist({ necessary: true, analytics: true, marketing: true })}
-                className="rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1D4ED8]"
+                className="col-span-2 min-h-11 rounded-xl bg-[#2563EB] px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#1D4ED8] sm:px-4 sm:py-3 sm:text-sm"
               >
                 Aceitar todos
               </button>

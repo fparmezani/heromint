@@ -92,43 +92,37 @@ export default function FootballSalesPage() {
 
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-[#d9a928]/25 pt-20">
+    <section className="relative overflow-hidden border-b border-[#d9a928]/25 pt-16 lg:pt-20">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_24%,rgba(217,169,40,0.28),transparent_34%),radial-gradient(circle_at_28%_72%,rgba(20,83,45,0.22),transparent_28%),linear-gradient(180deg,#050505_0%,#090807_55%,#020202_100%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.94)_0%,rgba(0,0,0,0.72)_38%,rgba(0,0,0,0.25)_100%)]" />
       <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black to-transparent" />
 
-      <div className="section-container relative z-10 grid min-h-[780px] items-center gap-12 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
+      <div className="section-container relative z-10 grid items-center gap-7 py-7 lg:min-h-[780px] lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-20">
         <div>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#d9a928]/30 bg-[#d9a928]/10 px-4 py-2">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#d9a928]/30 bg-[#d9a928]/10 px-3 py-1.5 lg:mb-6 lg:px-4 lg:py-2">
             <Sparkles className="h-4 w-4 text-[#f6c547]" />
-            <span className="text-xs font-black uppercase tracking-[0.18em] text-[#f6c547]">
+            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-[#f6c547] lg:text-xs lg:tracking-[0.18em]">
               Feito com inteligencia artificial
             </span>
           </div>
 
-          <h1 className="font-impact text-[54px] leading-[0.92] tracking-wide text-white md:text-[78px] lg:text-[88px]">
-            TRANSFORME
+          <h1 className="font-impact text-[42px] leading-[0.92] tracking-wide text-white min-[390px]:text-[46px] md:text-[78px] lg:text-[88px]">
+            CRIE SEU CARD
             <br />
-            SUA FOTO EM UM
+            DE FUTEBOL
             <br />
-            <span className="text-[#f6c547]">CARD DE CRAQUE</span>
+            <span className="text-[#f6c547]">COM IA</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85">
-            Use uma foto simples e receba um card Futebol 2026 personalizado,
-            com moldura, camisa, nome e visual pronto para compartilhar.
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-white/85 lg:mt-6 lg:text-lg">
+            Envie uma foto, escolha seu time e veja seu preview em minutos.
+            Depois finalize para baixar o card em alta resolucao.
           </p>
 
-          <div className="mt-7 grid max-w-xl gap-4 sm:grid-cols-3">
-            <MiniBenefit icon={Zap} title="Rapido" text="Preview em minutos" />
-            <MiniBenefit icon={ShieldCheck} title="Seguro" text="Pagamento protegido" />
-            <MiniBenefit icon={Star} title="Exclusivo" text="Card personalizado" />
-          </div>
-
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row lg:mt-9">
             <Link
               href="/criar/futebol-2026"
-              className="inline-flex items-center justify-center gap-3 rounded-lg bg-gradient-to-r from-[#ffd76a] to-[#c99318] px-7 py-4 text-base font-black uppercase tracking-wide text-black shadow-[0_0_30px_rgba(217,169,40,0.38)] transition hover:scale-[1.02]"
+              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg bg-gradient-to-r from-[#ffd76a] to-[#c99318] px-7 py-4 text-base font-black uppercase tracking-wide text-black shadow-[0_0_30px_rgba(217,169,40,0.38)] transition hover:scale-[1.02]"
             >
               Criar meu card agora
               <ArrowRight className="h-5 w-5" />
@@ -141,13 +135,22 @@ function HeroSection() {
             </Link>
           </div>
 
-          <div className="mt-6 flex items-center gap-3 text-sm text-white/80">
+          <MobileQuickSteps />
+          <MobileHeroExample />
+
+          <div className="mt-5 grid max-w-xl grid-cols-3 gap-2 lg:mt-7 lg:gap-4">
+            <MiniBenefit icon={Zap} title="Rapido" text="Preview em minutos" />
+            <MiniBenefit icon={ShieldCheck} title="Seguro" text="Pagamento protegido" />
+            <MiniBenefit icon={Star} title="Exclusivo" text="Card personalizado" />
+          </div>
+
+          <div className="mt-5 flex items-center gap-3 text-sm text-white/80 lg:mt-6">
             <AvatarStack />
             <span>Exemplos criados com imagens reais de referencia.</span>
           </div>
         </div>
 
-        <div className="relative min-h-[610px]">
+        <div className="relative hidden min-h-[610px] lg:block">
           <div className="absolute left-[1%] top-20 z-10 w-[36%] rotate-[-4deg]">
             <p className="mb-3 text-center font-impact text-2xl uppercase tracking-wide text-white">
               Antes
@@ -199,6 +202,44 @@ function HowItWorks() {
         </div>
       </div>
     </section>
+  );
+}
+
+function MobileQuickSteps() {
+  return (
+    <div className="mt-4 grid grid-cols-3 gap-2 lg:hidden">
+      {["Foto", "Dados", "Preview"].map((step, index) => (
+        <div key={step} className="rounded-xl border border-[#d9a928]/20 bg-black/35 p-2.5 text-center">
+          <div className="mx-auto mb-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#d9a928]/15 text-xs font-black text-[#f6c547]">
+            {index + 1}
+          </div>
+          <p className="text-[11px] font-black uppercase text-white">{step}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MobileHeroExample() {
+  return (
+    <div className="mt-4 rounded-2xl border border-[#d9a928]/25 bg-black/35 p-3 lg:hidden">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f6c547]">
+          Foto comum vira card
+        </p>
+        <ArrowRight className="h-4 w-4 text-[#f6c547]" />
+      </div>
+      <div className="grid grid-cols-[0.8fr_1fr] items-end gap-3">
+        <div>
+          <p className="mb-1 text-center text-[11px] font-black uppercase text-white/80">Antes</p>
+          <PhotoPanel src={heroExample.before} alt="Foto original antes do card" />
+        </div>
+        <div>
+          <p className="mb-1 text-center text-[11px] font-black uppercase text-[#f6c547]">Depois</p>
+          <GeneratedCardPanel src={heroExample.after} alt="Card Futebol 2026 gerado pelo HeroMint" />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -350,11 +391,11 @@ function MiniBenefit({
   text: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <Icon className="mt-1 h-6 w-6 shrink-0 text-[#f6c547]" />
+    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-[#d9a928]/15 bg-black/20 p-2 text-center lg:flex-row lg:items-start lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 lg:text-left">
+      <Icon className="h-5 w-5 shrink-0 text-[#f6c547] lg:mt-1 lg:h-6 lg:w-6" />
       <div>
-        <div className="text-sm font-black uppercase text-white">{title}</div>
-        <div className="text-xs text-white/70">{text}</div>
+        <div className="text-[11px] font-black uppercase text-white lg:text-sm">{title}</div>
+        <div className="text-[10px] leading-tight text-white/70 lg:text-xs lg:leading-normal">{text}</div>
       </div>
     </div>
   );
