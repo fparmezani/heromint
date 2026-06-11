@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
 
 function getPackagePrice(packageType: string): number {
   const prices: Record<string, number> = {
-    individual: 990, // R$ 9,90 em centavos
-    premium: 3990,   // R$ 39,90 em centavos
+    individual: 594, // R$ 5,94 em centavos
+    premium: 1194,   // R$ 11,94 em centavos
     completo: 7990,  // R$ 79,90 em centavos
   };
-  return prices[packageType] || 990;
+  return prices[packageType] || 594;
 }

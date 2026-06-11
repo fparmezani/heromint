@@ -126,11 +126,9 @@ export function createDeliveryEmailTemplate({
 export function createRecoveryEmailTemplate({
   userName,
   recoveryUrl,
-  coupon = "AMIGO40",
 }: {
   userName: string;
   recoveryUrl: string;
-  coupon?: string;
 }) {
   const displayName = userName?.trim() || "tudo bem";
 
@@ -145,7 +143,7 @@ export function createRecoveryEmailTemplate({
         .container { max-width: 600px; margin: 0 auto; padding: 24px; }
         .header { background: #0f172a; color: white; padding: 28px; text-align: center; border-radius: 12px 12px 0 0; }
         .content { background: white; padding: 28px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: 0; }
-        .coupon { display: inline-block; background: #fbbf24; color: #0f172a; padding: 8px 14px; border-radius: 999px; font-weight: 800; letter-spacing: 1px; }
+        .badge { display: inline-block; background: #fbbf24; color: #0f172a; padding: 8px 14px; border-radius: 999px; font-weight: 800; letter-spacing: 1px; }
         .button { display: inline-block; background: #2563eb; color: white !important; padding: 14px 24px; text-decoration: none; border-radius: 10px; font-weight: bold; margin: 18px 0; }
         .footer { color: #64748b; font-size: 13px; margin-top: 24px; text-align: center; }
       </style>
@@ -159,11 +157,11 @@ export function createRecoveryEmailTemplate({
         <div class="content">
           <p>Oi, ${displayName}?</p>
           <p>Vimos que voce comecou a criar seu card na HeroMint, mas nao finalizou a compra.</p>
-          <p>Teve algum problema no processo? Sem pressa: voce pode voltar ao site, fazer sua imagem novamente e ganhar <strong>40% de desconto</strong> na primeira compra.</p>
-          <p><span class="coupon">${coupon}</span></p>
-          <p>O botao abaixo ja leva voce com o cupom <strong>${coupon}</strong> preparado para o checkout.</p>
+          <p>Teve algum problema no processo? Sem pressa: voce pode voltar ao site, fazer sua imagem novamente e aproveitar o <strong>valor de lancamento</strong>.</p>
+          <p><span class="badge">DESCONTO JA APLICADO</span></p>
+          <p>O botao abaixo leva voce de volta para criar seu card. Na hora do pagamento, o preco promocional ja aparece aplicado automaticamente.</p>
           <p style="text-align: center;">
-            <a href="${recoveryUrl}" class="button">Criar meu card com desconto</a>
+            <a href="${recoveryUrl}" class="button">Criar meu card com valor de lancamento</a>
           </p>
           <p>Se voce ja concluiu sua compra, pode ignorar este email.</p>
           <p>Abracos,<br>Equipe HeroMint</p>

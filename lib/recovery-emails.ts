@@ -8,7 +8,6 @@ const RECOVERY_LIMIT_PER_RUN = 50;
 const RECOVERY_URL = process.env.NEXT_PUBLIC_SITE_URL
   ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/futebol`
   : "https://heromint.net/futebol";
-const RECOVERY_COUPON = "AMIGO40";
 
 type RecoveryStatus = "pending" | "sent" | "skipped_paid" | "skipped_recent" | "failed";
 
@@ -88,12 +87,10 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function addCouponToRecoveryUrl(recoveryUrl: string, coupon: string) {
+function addRecoveryTrackingToUrl(recoveryUrl: string) {
   const url = new URL(recoveryUrl);
-  url.searchParams.set("coupon", coupon);
-  url.searchParams.set("prefilled_promo_code", coupon);
   url.searchParams.set("utm_source", "recovery_email");
-  url.searchParams.set("utm_campaign", coupon.toLowerCase());
+  url.searchParams.set("utm_campaign", "launch_price");
   return url.toString();
 }
 
@@ -507,8 +504,7 @@ export async function runRecoveryEmailTask(): Promise<RecoveryRunResult> {
 
       const html = createRecoveryEmailTemplate({
         userName: getFirstName(oldestCandidate.user_name),
-        recoveryUrl: addCouponToRecoveryUrl(RECOVERY_URL, RECOVERY_COUPON),
-        coupon: RECOVERY_COUPON,
+        recoveryUrl: addRecoveryTrackingToUrl(RECOVERY_URL),
       });
 
       await sendEmail({

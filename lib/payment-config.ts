@@ -4,7 +4,7 @@ import { isPackageAvailable } from "@/types/collectible";
 // Stripe Payment Links for packages currently available for sale.
 export const PAYMENT_LINKS: Record<PackageType, string> = {
   individual: "https://buy.stripe.com/28E4gt0w28fo27G3awdZ603",
-  premium: "https://buy.stripe.com/4gM8wJ5QmeDM27GfXidZ602?prefilled_promo_code=AMIGO40",
+  premium: "https://buy.stripe.com/eVq14hemS3Z87s0dPadZ604",
   completo: "",
   "futebol-familia": "",
 };

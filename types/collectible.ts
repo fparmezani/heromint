@@ -23,16 +23,18 @@ export interface Collectible {
   expiresAt?: Date | null;
 }
 
-export const PACKAGE_CONFIG: Record<PackageType, { label: string; price: number; description: string; versions: number }> = {
+export const PACKAGE_CONFIG: Record<PackageType, { label: string; price: number; originalPrice?: number; description: string; versions: number }> = {
   individual: {
     label: "Card Individual",
-    price: 990,
+    price: 594,
+    originalPrice: 990,
     description: "1 imagem em alta resolução",
     versions: 1,
   },
   premium: {
     label: "Pack Premium",
-    price: 1990,
+    price: 1194,
+    originalPrice: 1990,
     description: "5 versões diferentes",
     versions: 5,
   },
