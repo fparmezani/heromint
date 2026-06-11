@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Mail, Download, Loader2, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,6 +20,16 @@ function getDownloadExtension(contentType: string, imageCount: number) {
   return "jpg";
 }
 
+function getFilenameFromDisposition(disposition: string | null) {
+  if (!disposition) return null;
+
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1].replace(/"/g, ""));
+
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  return match?.[1] || null;
+}
+
 export function DeliveryOptions({
   collectibleId,
   packageType,
@@ -33,6 +43,15 @@ export function DeliveryOptions({
   const [isLoading, setIsLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<"email" | "download" | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [lastDownload, setLastDownload] = useState<{ url: string; filename: string } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (lastDownload?.url) {
+        window.URL.revokeObjectURL(lastDownload.url);
+      }
+    };
+  }, [lastDownload]);
 
   const handleEmailDelivery = async () => {
     if (!email || !email.includes("@")) {
@@ -92,13 +111,20 @@ export function DeliveryOptions({
         // Cria um blob e força o download
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
+        const filename = getFilenameFromDisposition(response.headers.get("content-disposition")) ||
+          `HeroMint_${themeName}_${collectibleId}.${getDownloadExtension(blob.type, generatedImages.length)}`;
+
+        if (lastDownload?.url) {
+          window.URL.revokeObjectURL(lastDownload.url);
+        }
+
+        setLastDownload({ url, filename });
         const a = document.createElement("a");
         a.href = url;
-        a.download = `HeroMint_${themeName}_${collectibleId}.${getDownloadExtension(blob.type, generatedImages.length)}`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
         setIsCompleted(true);
         setTimeout(() => {
@@ -132,6 +158,17 @@ export function DeliveryOptions({
             : "Download iniciado com sucesso!"
           }
         </p>
+        {deliveryMethod === "download" && lastDownload && (
+          <a
+            href={lastDownload.url}
+            download={lastDownload.filename}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#22C55E] px-5 text-sm font-bold text-white transition-colors hover:bg-[#16A34A]"
+          >
+            Abrir imagem baixada
+          </a>
+        )}
       </motion.div>
     );
   }

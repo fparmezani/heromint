@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       return redirectToAccount(appUrl, "pending");
     }
 
-    return redirectToAccount(appUrl, "confirmed");
+    return NextResponse.redirect(new URL(`/entrega/${orderId}`, appUrl));
   } catch (error) {
     console.error("[STRIPE CONFIRM] Error:", error);
     return redirectToAccount(appUrl, "error");

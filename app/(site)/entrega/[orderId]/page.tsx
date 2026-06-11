@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle, Download, Mail, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { DeliveryOptions } from "@/components/delivery/DeliveryOptions";
+import { CardTemplate } from "@/components/preview/CardTemplate";
 import { supabase } from "@/lib/supabase";
 
 interface OrderData {
@@ -14,7 +15,7 @@ interface OrderData {
   theme_name: string;
   package_type: string;
   payment_status: string;
-  form_data: any;
+  form_data: Record<string, string>;
   generated_images: Array<{
     id: string;
     image_url: string;
@@ -27,9 +28,56 @@ interface OrderData {
   };
 }
 
+function ReleasedCardPreview({ order }: { order: OrderData }) {
+  const firstImage = order.generated_images[0];
+
+  if (!firstImage) {
+    return (
+      <div className="mb-6 rounded-2xl border border-[#FBBF24]/20 bg-[#FBBF24]/10 p-5 text-center">
+        <AlertCircle className="mx-auto mb-3 h-10 w-10 text-[#FBBF24]" />
+        <p className="font-bold text-white">Imagem em preparacao</p>
+        <p className="mt-1 text-sm text-[#CBD5E1]">
+          O pagamento foi confirmado, mas ainda nao encontramos a imagem final. Toque em tentar novamente.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.08 }}
+      className="mb-6 rounded-2xl border border-[#22C55E]/25 bg-[#0F172A] p-4 shadow-[0_0_34px_rgba(34,197,94,0.12)]"
+    >
+      <div className="mb-3 text-center">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#22C55E]">
+          Card liberado
+        </p>
+        <h2 className="mt-1 text-xl font-bold text-white">Sua imagem esta pronta</h2>
+      </div>
+
+      <div className="mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-[#1E293B] bg-[#020617]">
+        <div className="aspect-[9/11]">
+          <CardTemplate
+            themeId={firstImage.template_used}
+            photoUrl={firstImage.image_url}
+            generatedImageUrl={firstImage.image_url}
+            formData={order.form_data as Record<string, string>}
+            showWatermark={false}
+          />
+        </div>
+      </div>
+
+      <p className="mt-3 text-center text-xs text-[#94A3B8]">
+        Sem marca d&apos;agua. Use o botao abaixo para baixar em alta resolucao.
+      </p>
+    </motion.div>
+  );
+}
+
 export default function EntregaPage() {
   const params = useParams();
-  const router = useRouter();
   const orderId = params.orderId as string;
   
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -54,7 +102,7 @@ export default function EntregaPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
-  const loadOrderData = async () => {
+  async function loadOrderData() {
     try {
       setLoading(true);
       setError(null);
@@ -101,9 +149,9 @@ export default function EntregaPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const startPolling = () => {
+  function startPolling() {
     // Clear any existing interval
     stopPolling();
     
@@ -145,14 +193,14 @@ export default function EntregaPage() {
         console.error("Polling exception:", err);
       }
     }, 5000);
-  };
+  }
 
-  const stopPolling = () => {
+  function stopPolling() {
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -230,16 +278,18 @@ export default function EntregaPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
+            className="text-center mb-5 md:mb-8"
           >
-            <CheckCircle className="w-20 h-20 text-[#22C55E] mx-auto mb-4" />
-            <h1 className="font-impact text-4xl text-white tracking-wide mb-2">
+            <CheckCircle className="w-14 h-14 text-[#22C55E] mx-auto mb-3 md:h-20 md:w-20 md:mb-4" />
+            <h1 className="font-impact text-3xl text-white tracking-wide mb-2 md:text-4xl">
               PAGAMENTO CONFIRMADO!
             </h1>
-            <p className="text-[#94A3B8] text-lg">
-              Suas imagens épicas estão prontas para download
+            <p className="text-[#94A3B8] text-base md:text-lg">
+              Seu card esta liberado para download
             </p>
           </motion.div>
+
+          <ReleasedCardPreview order={order} />
 
           {/* Order Summary */}
           <motion.div
