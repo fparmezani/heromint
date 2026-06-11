@@ -13,6 +13,7 @@ import { PackageSelector } from "./PackageSelector";
 import { PhotoGuide } from "./PhotoGuide";
 import { GeneratingPage } from "@/components/loading/GeneratingPage";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
+import { trackHotjarEvent } from "@/lib/hotjar-events";
 import type { Theme } from "@/types/theme";
 import type { PackageType } from "@/types/collectible";
 
@@ -88,6 +89,20 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   const form1Values = useWatch({ control: form1.control }) as Record<string, string>;
 
   useEffect(() => {
+    if (status !== "authenticated") return;
+    if (!localStorage.getItem(draftKey)) return;
+
+    const eventKey = `${draftKey}_login_returned_tracked`;
+    if (sessionStorage.getItem(eventKey)) return;
+
+    trackHotjarEvent("google_login_returned", {
+      source: "create_form",
+      theme: theme.id,
+    });
+    sessionStorage.setItem(eventKey, "true");
+  }, [draftKey, status, theme.id]);
+
+  useEffect(() => {
     const currentFormData = {
       ...formData,
       ...form0Values,
@@ -157,6 +172,11 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   const handleSubmit = async () => {
     try {
       if (status !== "authenticated") {
+        trackHotjarEvent("google_login_started", {
+          source: "create_form",
+          theme: theme.id,
+          step: currentStep,
+        });
         const currentFormData = {
           ...formData,
           ...(form0.getValues() as Record<string, string>),

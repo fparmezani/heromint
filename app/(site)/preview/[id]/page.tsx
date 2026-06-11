@@ -12,6 +12,7 @@ import { PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
 import { hasPaymentLink } from "@/lib/payment-config";
 import { isSandboxEnvironment, shouldBypassWatermark } from "@/lib/environment";
+import { trackHotjarEvent } from "@/lib/hotjar-events";
 
 interface PreviewData {
   collectibleId: string;
@@ -72,6 +73,11 @@ export default function PreviewPage() {
 
   const handlePaymentFlow = () => {
     if (!paymentEmail || !paymentEmail.includes("@")) {
+      trackHotjarEvent("google_login_required", {
+        source: "preview_payment",
+        theme: data?.theme,
+        package: data?.packageType,
+      });
       setShowLoginForm(true);
       return;
     }
@@ -86,6 +92,10 @@ export default function PreviewPage() {
   const handleDevPayment = async () => {
     if (!data) return;
     
+    trackHotjarEvent("sandbox_payment_started", {
+      theme: data.theme,
+      package: data.packageType,
+    });
     setIsTestingPayment(true);
     try {
       const response = await fetch('/api/process-payment', {
@@ -110,6 +120,10 @@ export default function PreviewPage() {
       const result = await response.json();
       
       if (result.success) {
+        trackHotjarEvent("sandbox_payment_completed", {
+          theme: data.theme,
+          package: data.packageType,
+        });
         // Redireciona para página de entrega
         window.location.href = result.order.redirect_url;
       } else {
@@ -125,6 +139,11 @@ export default function PreviewPage() {
   const handleProductionPayment = async () => {
     if (!data) return;
     
+    trackHotjarEvent("payment_order_started", {
+      provider: "stripe",
+      theme: data.theme,
+      package: data.packageType,
+    });
     setIsTestingPayment(true);
     try {
       const response = await fetch('/api/process-payment', {
@@ -149,6 +168,10 @@ export default function PreviewPage() {
       const result = await response.json();
       
       if (result.success) {
+        trackHotjarEvent("stripe_checkout_started", {
+          theme: data.theme,
+          package: data.packageType,
+        });
         // Use a same-tab redirect: browsers may block a popup after awaiting
         // the server request that creates the pending order.
         setPendingOrderId(result.order.id);
@@ -165,6 +188,11 @@ export default function PreviewPage() {
   };
 
   const handleGoogleSignIn = () => {
+    trackHotjarEvent("google_login_started", {
+      source: "preview_payment",
+      theme: data?.theme,
+      package: data?.packageType,
+    });
     void signIn("google", { callbackUrl: window.location.href });
   };
 

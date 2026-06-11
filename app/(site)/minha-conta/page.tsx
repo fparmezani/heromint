@@ -19,6 +19,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { getUserOrders, getOrCreateUser, type Order, type GeneratedImage, type User as AccountUser } from "@/lib/supabase";
 import { PACKAGE_CONFIG } from "@/types/collectible";
 import { CardTemplate } from "@/components/preview/CardTemplate";
+import { trackHotjarEvent } from "@/lib/hotjar-events";
 
 interface OrderWithImages extends Order {
   generated_images: GeneratedImage[];
@@ -124,6 +125,8 @@ function MinhaContaContent() {
   const [user, setUser] = useState<AccountUser | null>(null);
   const ordersCarouselRef = useRef<HTMLDivElement>(null);
   const purchaseTrackedRef = useRef(false);
+  const hotjarPaymentTrackedRef = useRef(false);
+  const hotjarLoginTrackedRef = useRef(false);
   const { data: session, status } = useSession();
   const email = session?.user?.email || "";
   const searchParams = useSearchParams();
@@ -192,6 +195,24 @@ function MinhaContaContent() {
     return () => window.clearTimeout(timeoutId);
   }, [email, isLoggedIn, loadAccount, loading, status]);
 
+  useEffect(() => {
+    if (status !== "authenticated" || hotjarLoginTrackedRef.current) return;
+
+    trackHotjarEvent("google_login_returned", {
+      source: "account",
+    });
+    hotjarLoginTrackedRef.current = true;
+  }, [status]);
+
+  useEffect(() => {
+    if (!paymentStatus || hotjarPaymentTrackedRef.current) return;
+
+    trackHotjarEvent("stripe_returned", {
+      status: paymentStatus,
+    });
+    hotjarPaymentTrackedRef.current = true;
+  }, [paymentStatus]);
+
   // Inicia polling quando houver pedidos pendentes
   useEffect(() => {
     const hasPending = orders.some(o => o.payment_status === 'pending');
@@ -220,6 +241,11 @@ function MinhaContaContent() {
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
 
       if (latestPaid) {
+        trackHotjarEvent("payment_confirmed", {
+          provider: "stripe",
+          amount: latestPaid.total_amount,
+          package: latestPaid.package_type,
+        });
         (window as Window & typeof globalThis & { fbq: (...args: unknown[]) => void }).fbq("track", "Purchase", {
           value: latestPaid.total_amount / 100,
           currency: "BRL",
