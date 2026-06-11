@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useForm, type FieldValues } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useWatch, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
@@ -20,16 +20,40 @@ const STEPS = ["Dados Principais", "Detalhes", "Sua Foto", "Pacote"];
 const MAX_FAMILY_REFERENCE_PHOTOS = 5;
 const THREE_DIGIT_FIELDS = new Set(["altura", "peso"]);
 
+type CreateDraft = {
+  currentStep: number;
+  formData: Record<string, string>;
+  photoUrls: string[];
+  hasImageAuthorization: boolean;
+  packageType: PackageType;
+};
+
 interface MultiStepFormProps {
   theme: Theme;
 }
 
 export function MultiStepForm({ theme }: MultiStepFormProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [hasImageAuthorization, setHasImageAuthorization] = useState(false);
-  const [packageType, setPackageType] = useState<PackageType>("individual");
+  const draftKey = `heromint_create_draft_${theme.id}`;
+  const [initialDraft] = useState<Partial<CreateDraft>>(() => {
+    if (typeof window === "undefined") return {};
+
+    try {
+      const rawDraft = localStorage.getItem(draftKey);
+      return rawDraft ? JSON.parse(rawDraft) as Partial<CreateDraft> : {};
+    } catch {
+      localStorage.removeItem(draftKey);
+      return {};
+    }
+  });
+  const [currentStep, setCurrentStep] = useState(
+    Math.min(Math.max(initialDraft.currentStep ?? 0, 0), STEPS.length - 1)
+  );
+  const [formData, setFormData] = useState<Record<string, string>>(initialDraft.formData ?? {});
+  const [photoUrls, setPhotoUrls] = useState<string[]>(
+    Array.isArray(initialDraft.photoUrls) ? initialDraft.photoUrls : []
+  );
+  const [hasImageAuthorization, setHasImageAuthorization] = useState(Boolean(initialDraft.hasImageAuthorization));
+  const [packageType, setPackageType] = useState<PackageType>(initialDraft.packageType ?? "individual");
   const router = useRouter();
   const { status } = useSession();
   const {
@@ -60,6 +84,38 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
 
   const form0 = useForm({ resolver: zodResolver(schema0), defaultValues: formData });
   const form1 = useForm({ resolver: zodResolver(schema1), defaultValues: formData });
+  const form0Values = useWatch({ control: form0.control }) as Record<string, string>;
+  const form1Values = useWatch({ control: form1.control }) as Record<string, string>;
+
+  useEffect(() => {
+    const currentFormData = {
+      ...formData,
+      ...form0Values,
+      ...form1Values,
+    };
+
+    try {
+      const draft: CreateDraft = {
+        currentStep,
+        formData: currentFormData,
+        photoUrls,
+        hasImageAuthorization,
+        packageType,
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch {
+      // Photos can be large; keeping the form usable is more important than blocking the flow.
+    }
+  }, [
+    currentStep,
+    draftKey,
+    form0Values,
+    form1Values,
+    formData,
+    hasImageAuthorization,
+    packageType,
+    photoUrls,
+  ]);
 
   const handleNext = async () => {
     if (currentStep === 0) {
@@ -101,6 +157,18 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   const handleSubmit = async () => {
     try {
       if (status !== "authenticated") {
+        const currentFormData = {
+          ...formData,
+          ...(form0.getValues() as Record<string, string>),
+          ...(form1.getValues() as Record<string, string>),
+        };
+        localStorage.setItem(draftKey, JSON.stringify({
+          currentStep,
+          formData: currentFormData,
+          photoUrls,
+          hasImageAuthorization,
+          packageType,
+        } satisfies CreateDraft));
         await signIn("google", { callbackUrl: window.location.href });
         return;
       }
@@ -158,6 +226,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
           generatedImageUrl: data.images?.[0]?.imageUrl, 
           isMock: data.images?.[0]?.isMock || false,
         }));
+        localStorage.removeItem(draftKey);
         router.push(`/preview/${data.collectibleId}`);
       } else {
         throw new Error("Erro ao gerar card");
@@ -299,8 +368,13 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const url = URL.createObjectURL(file);
-                          setPhotoUrls(prev => [...prev, url]);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            if (typeof reader.result === "string") {
+                              setPhotoUrls(prev => [...prev, reader.result as string]);
+                            }
+                          };
+                          reader.readAsDataURL(file);
                         }
                       }}
                     />
