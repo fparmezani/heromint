@@ -29,6 +29,16 @@ interface PreviewData {
   isMock?: boolean;
 }
 
+interface FirstPurchasePromotion {
+  eligible: boolean;
+  coupon: string;
+  discountPercent: number;
+}
+
+function formatCurrency(cents: number) {
+  return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
+}
+
 export default function PreviewPage() {
   const params = useParams();
   const id = params.id as string;
@@ -39,6 +49,7 @@ export default function PreviewPage() {
   const [isTestingPayment, setIsTestingPayment] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [promotion, setPromotion] = useState<FirstPurchasePromotion | null>(null);
   const { data: session } = useSession();
   const paymentEmail = session?.user?.email;
   const paymentUserName = session?.user?.name;
@@ -58,6 +69,25 @@ export default function PreviewPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [id]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch("/api/promotions/first-purchase")
+      .then((response) => response.json())
+      .then((result: FirstPurchasePromotion) => {
+        if (isMounted && result.eligible) {
+          setPromotion(result);
+        }
+      })
+      .catch(() => {
+        // The checkout CTA should keep working even if the promotion lookup fails.
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Verifica se há um pedido pendente no localStorage
   useEffect(() => {
@@ -216,6 +246,12 @@ export default function PreviewPage() {
   }
 
   const pkg = PACKAGE_CONFIG[data.packageType];
+  const showFirstPurchaseDiscount = Boolean(promotion?.eligible && pkg);
+  const fullPrice = pkg?.price ?? 0;
+  const discountPercent = promotion?.discountPercent ?? 0;
+  const discountedPrice = showFirstPurchaseDiscount
+    ? Math.round(fullPrice * (100 - discountPercent) / 100)
+    : fullPrice;
   const hasMultipleImages = data.generatedImages && data.generatedImages.length > 1;
   const currentImage = data.generatedImages?.[selectedImageIndex] || { 
     imageUrl: data.generatedImageUrl, 
@@ -382,9 +418,22 @@ export default function PreviewPage() {
 
               <div className="flex items-center justify-between pt-3 mt-1 border-t border-[#1E293B]">
                 <span className="text-white font-bold">Total</span>
-                <span className="font-impact text-2xl gradient-text">
-                  R$ {pkg ? (pkg.price / 100).toFixed(2).replace(".", ",") : "0,00"}
-                </span>
+                <div className="text-right">
+                  {showFirstPurchaseDiscount ? (
+                    <>
+                      <p className="text-xs font-bold text-[#94A3B8] line-through">
+                        {formatCurrency(fullPrice)}
+                      </p>
+                      <p className="font-impact text-2xl text-[#FBBF24]">
+                        {formatCurrency(discountedPrice)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="font-impact text-2xl gradient-text">
+                      {formatCurrency(fullPrice)}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -416,10 +465,19 @@ export default function PreviewPage() {
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  {paymentEmail ?
-                    `Finalizar Pagamento - R$ ${pkg ? (pkg.price / 100).toFixed(2).replace(".", ",") : "0,00"}` :
+                  {paymentEmail ? (
+                    showFirstPurchaseDiscount ? (
+                      <span className="flex flex-wrap items-center justify-center gap-2">
+                        <span>Finalizar Pagamento</span>
+                        <span className="text-white/70 line-through">{formatCurrency(fullPrice)}</span>
+                        <span>{formatCurrency(discountedPrice)}</span>
+                      </span>
+                    ) : (
+                      `Finalizar Pagamento - ${formatCurrency(fullPrice)}`
+                    )
+                  ) : (
                     "Entrar com Google e Pagar"
-                  }
+                  )}
                 </>
               )}
             </button>
