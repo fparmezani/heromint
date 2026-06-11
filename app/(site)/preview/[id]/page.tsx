@@ -33,6 +33,32 @@ function formatCurrency(cents: number) {
   return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 }
 
+const getPreviewStorageValue = (key: string) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) return raw;
+  } catch {
+    // ignore localStorage access errors
+  }
+
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const parsePreviewData = (id: string): PreviewData | null => {
+  const raw = getPreviewStorageValue(`heromint_preview_${id}`);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as PreviewData;
+  } catch {
+    return null;
+  }
+};
+
 export default function PreviewPage() {
   const params = useParams();
   const id = params.id as string;
@@ -49,13 +75,9 @@ export default function PreviewPage() {
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      const raw = localStorage.getItem(`heromint_preview_${id}`);
-      if (raw) {
-        try {
-          setData(JSON.parse(raw));
-        } catch {
-          // ignore parse errors
-        }
+      const previewData = parsePreviewData(id);
+      if (previewData) {
+        setData(previewData);
       }
       setLoading(false);
     }, 0);

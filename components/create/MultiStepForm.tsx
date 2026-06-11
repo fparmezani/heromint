@@ -169,6 +169,53 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
     setCurrentStep((s) => Math.max(s - 1, 0));
   };
 
+  const isQuotaExceededError = (error: unknown) => {
+    if (!(error instanceof Error)) return false;
+    const name = error.name;
+    return (
+      name === "QuotaExceededError" ||
+      name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+      (typeof (error as any).code === "number" && ((error as any).code === 22 || (error as any).code === 1014))
+    );
+  };
+
+  const clearOldPreviewEntries = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      for (const key of keys) {
+        if (key.startsWith("heromint_preview_")) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore failures while cleaning storage
+    }
+  };
+
+  const savePreviewData = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      if (isQuotaExceededError(error)) {
+        clearOldPreviewEntries();
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch {
+          // try fallback to sessionStorage
+        }
+      }
+    }
+
+    try {
+      sessionStorage.setItem(key, value);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       if (status !== "authenticated") {
@@ -231,21 +278,25 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
       );
 
       if (data.collectibleId) {
-        // Save everything to localStorage for the preview page
-        localStorage.setItem(`heromint_preview_${data.collectibleId}`, JSON.stringify({
+        const previewKey = `heromint_preview_${data.collectibleId}`;
+        const previewPayload = JSON.stringify({
           collectibleId: data.collectibleId,
           theme: theme.id,
           themeName: theme.name,
           themeIcon: theme.icon,
           packageType,
           formData: allFormData,
-          photoUrls,                    // blob URLs for card template overlay
-          generatedImages: data.images, // Array of generated images
+          photoUrls,
+          generatedImages: data.images,
           totalGenerated: data.totalGenerated,
-          // Keep backward compatibility
-          generatedImageUrl: data.images?.[0]?.imageUrl, 
+          generatedImageUrl: data.images?.[0]?.imageUrl,
           isMock: data.images?.[0]?.isMock || false,
-        }));
+        });
+
+        if (!savePreviewData(previewKey, previewPayload)) {
+          console.warn("Falha ao salvar dados de preview no armazenamento do navegador.");
+        }
+
         localStorage.removeItem(draftKey);
         router.push(`/preview/${data.collectibleId}`);
       } else {

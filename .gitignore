@@ -27,13 +27,24 @@
 /.generated-images/
 
 # debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# python
+*.py
+
+# powershell
+*.ps1
+
 # env files (can opt-in for committing if needed)
 .env*
+
+# markdown docs
+*.MD
+!README.md
 
 # vercel
 .vercel
@@ -41,6 +52,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docs
+/docs
+
+# posts folder
+/posts
+
+# instagram automation
+/instagram-automation
 
 .vercel
 posts/Álbum da Copa Autografado_ Duelo Épico e Superchat Premiado!.mp4
@@ -99,3 +119,9 @@ lib/image-cards/Miguel/depois.png
 lib/image-cards/Joao Gabriel/antes.jpg
 POSTS_GUIDE.md
 README_SOCIAL_MEDIA.md
+metricool_payloads.json
+.codex-qa/heromint-futebol-mobile.png
+.codex-qa/heromint-futebol-mobile-final.png
+.codex-qa/heromint-futebol-mobile-accepted.png
+.codex-qa/heromint-futebol-desktop.png
+.codex-qa/heromint-futebol-desktop-final.png
