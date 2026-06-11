@@ -159,11 +159,11 @@ export function createRecoveryEmailTemplate({
         <div class="content">
           <p>Oi, ${displayName}?</p>
           <p>Vimos que voce comecou a criar seu card na HeroMint, mas nao finalizou a compra.</p>
-          <p>Teve algum problema no processo? Sem pressa: voce pode voltar ao site, fazer sua imagem novamente e usar o cupom abaixo para ganhar <strong>40% de desconto</strong> na primeira compra.</p>
+          <p>Teve algum problema no processo? Sem pressa: voce pode voltar ao site, fazer sua imagem novamente e ganhar <strong>40% de desconto</strong> na primeira compra.</p>
           <p><span class="coupon">${coupon}</span></p>
-          <p>Na hora do pagamento, basta aplicar o codigo <strong>${coupon}</strong> e o desconto entra automaticamente.</p>
+          <p>O botao abaixo ja leva voce com o cupom <strong>${coupon}</strong> preparado para o checkout.</p>
           <p style="text-align: center;">
-            <a href="${recoveryUrl}" class="button">Criar meu card novamente</a>
+            <a href="${recoveryUrl}" class="button">Criar meu card com desconto</a>
           </p>
           <p>Se voce ja concluiu sua compra, pode ignorar este email.</p>
           <p>Abracos,<br>Equipe HeroMint</p>
