@@ -1,10 +1,9 @@
 import { requireAdminPage } from "@/lib/admin-auth";
+import AdminNav from "./AdminNav";
 
 export default async function AdminLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  await requireAdminPage();
-  return children;
-}
+}) {
+  await requireAdminPage

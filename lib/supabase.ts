@@ -265,6 +265,16 @@ export async function getOrderImages(orderId: string) {
   return data;
 }
 
+
+export async function updateGeneratedImageUrl(imageId: string, imageUrl: string) {
+  const { error } = await supabaseAdmin
+    .from('generated_images')
+    .update({ image_url: imageUrl })
+    .eq('id', imageId);
+
+  if (error) throw error;
+}
+
 export async function markGeneratedImageUnavailable(imageId: string) {
   const { data, error } = await supabaseAdmin
     .from('generated_images')
@@ -303,4 +313,28 @@ export async function uploadImageToStorage(
     .getPublicUrl(path);
 
   return { publicUrl: publicUrlData.publicUrl };
+}
+
+// ─── Template Overrides ────────────────────────────────────────────────────────
+
+export async function getAllTemplateOverrides(): Promise<Record<string, Record<string, unknown>>> {
+  const { data, error } = await supabaseAdmin
+    .from("template_overrides")
+    .select("theme_id, config");
+
+  if (error) throw error;
+
+  const result: Record<string, Record<string, unknown>> = {};
+  for (const row of data ?? []) {
+    result[row.theme_id] = row.config;
+  }
+  return result;
+}
+
+export async function saveTemplateOverride(themeId: string, config: Record<string, unknown>) {
+  const { error } = await supabaseAdmin
+    .from("template_overrides")
+    .upsert({ theme_id: themeId, config, updated_at: new Date().toISOString() }, { onConflict: "theme_id" });
+
+  if (error) throw error;
 }

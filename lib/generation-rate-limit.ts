@@ -6,6 +6,7 @@ interface GenerationRateLimitEntry {
   resetAt: number;
 }
 
+// Keyed by IP or email
 const generationAttempts = new Map<string, GenerationRateLimitEntry>();
 
 export function getGenerationClientIp(request: Request) {
@@ -51,4 +52,12 @@ export function checkGenerationRateLimit(identifier: string) {
     remaining: MAX_GENERATIONS_PER_WINDOW - current.count,
     resetAt: current.resetAt,
   };
+}
+
+/**
+ * Reset rate limit for a given identifier (email or IP).
+ * Called after a confirmed purchase so the user can generate again.
+ */
+export function resetGenerationRateLimit(identifier: string) {
+  generationAttempts.delete(identifier);
 }

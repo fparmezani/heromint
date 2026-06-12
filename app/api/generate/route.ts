@@ -8,7 +8,7 @@ import {
 import { persistGeneratedImage } from "@/lib/generated-image-storage";
 import { createGeneratedImageToken } from "@/lib/generated-image-token";
 import { shouldBypassWatermark } from "@/lib/environment";
-import { checkGenerationRateLimit, getGenerationClientIp } from "@/lib/generation-rate-limit";
+import { checkGenerationRateLimit, getGenerationClientIp, resetGenerationRateLimit } from "@/lib/generation-rate-limit";
 import { hasClubCrest } from "@/lib/football-2026-prompt";
 import { isPackageAvailable, PACKAGE_CONFIG } from "@/types/collectible";
 import type { PackageType } from "@/types/collectible";
@@ -32,8 +32,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const userEmail = session.user.email;
     const clientIp = getGenerationClientIp(request);
-    const rateLimit = checkGenerationRateLimit(clientIp);
+
+    // Check by email first (more reliable than IP), then IP as fallback
+    const emailRateLimit = checkGenerationRateLimit(userEmail);
+    const ipRateLimit = emailRateLimit.allowed ? checkGenerationRateLimit(clientIp) : emailRateLimit;
+    const rateLimit = emailRateLimit.allowed ? ipRateLimit : emailRateLimit;
+
     if (!rateLimit.allowed) {
       const resetDate = new Date(rateLimit.resetAt).toLocaleString("pt-BR", {
         timeZone: "America/Sao_Paulo",
@@ -42,6 +48,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: `Limite diario de previews atingido. Tente novamente apos ${resetDate}.`,
+          isRateLimit: true,
+          resetAt: rateLimit.resetAt,
           errorCode: requestId,
         },
         {

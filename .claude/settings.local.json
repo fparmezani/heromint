@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la ~/.claude/skills/promo-video/ 2>/dev/null | head -20)",
+      "Bash(cd /tmp)",
+      "Bash(yes \"\")",
+      "Bash(npx create-video@latest --blank --no-git heromint-promo)",
+      "Bash(ls -la /tmp/heromint-promo/ 2>/dev/null && echo \"✓ Projeto criado\" || echo \"⏳ Ainda criando...\")",
+      "Bash(mkdir -p /tmp/heromint-promo/public/images)",
+      "Bash(cp -r \"C:/Projetos/HeroMint/lib/image-cards\"/* /tmp/heromint-promo/public/images/)",
+      "Read(//c/tmp/heromint-promo/**)",
+      "Bash(npm install *)",
+      "Bash(mkdir -p /tmp/heromint-promo/public/music)",
+      "Bash(cp ~/.claude/skills/promo-video/music/*.mp3 /tmp/heromint-promo/public/music/)",
+      "Bash(npx remotion *)",
+      "Bash(ffmpeg -y -f lavfi -i color=c=000000:s=1080x1920:d=1:r=30 -vf 'drawtext=fontfile='\\\\''C\\\\:/Windows/Fonts/arial.ttf'\\\\'':text='\\\\''TRANSFORME'\\\\'':fontsize=72:fontcolor=00FF88:x=\\(w-text_w\\)/2:y=h/2-200,drawtext=fontfile='\\\\''C\\\\:/Windows/Fonts/arial.ttf'\\\\'':text='\\\\''SEU FILHO'\\\\'':fontsize=72:fontcolor=FF00FF:x=\\(w-text_w\\)/2:y=h/2,drawtext=fontfile='\\\\''C\\\\:/Windows/Fonts/arial.ttf'\\\\'':text='\\\\''em uma LENDA'\\\\'':fontsize=48:fontcolor=FFFFFF:x=\\(w-text_w\\)/2:y=h/2+150' -c:v libx264 -crf 20 hook.mp4)",
+      "Bash(python3 create_heromint_promo.py)",
+      "Bash(pip install *)",
+      "Bash(python3 \"C:\\\\Projetos\\\\HeroMint\\\\create_heromint_promo.py\")",
+      "Bash(python3 create_simple_promo.py)",
+      "Bash(python create_simple_promo.py)",
+      "Bash(python generate_voiceover.py)",
+      "Bash(python add_audio_to_video.py)",
+      "Bash(python create_posts.py)",
+      "mcp__9de7b3f8-d8ba-442f-9e24-409b744638fa__createScheduledPost"
+    ]
+  }
+}

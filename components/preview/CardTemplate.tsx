@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { WatermarkOverlay } from "./WatermarkOverlay";
 import { shouldBypassWatermark } from "@/lib/environment";
 import { getClubCrestDataUri } from "@/lib/football-2026-prompt";
+import { applyOverride, type ThemeOverrides } from "@/lib/template-overrides";
 
 interface CardTemplateProps {
   themeId: string;
@@ -11,6 +12,8 @@ interface CardTemplateProps {
   generatedImageUrl?: string;
   formData: Record<string, string>;
   showWatermark?: boolean;
+  /** Per-element style overrides from the admin template editor */
+  themeOverrides?: Record<string, Record<string, unknown>>;
 }
 
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='768'%3E%3Crect fill='%231E293B' width='512' height='768'/%3E%3Ctext x='256' y='384' font-size='32' fill='%2394A3B8' text-anchor='middle' dominant-baseline='middle'%3EAguardando imagem...%3C/text%3E%3C/svg%3E";
@@ -104,15 +107,44 @@ function Corners({ color }: { color: string }) {
 function FutebolCard({
   photoUrl,
   f,
+  overrides = {},
 }: {
   photoUrl: string;
   f: Record<string, string>;
+  overrides?: ThemeOverrides;
 }) {
   const crestUri = getClubCrestDataUri(f?.time);
   const nome = f?.nome || "JOGADOR";
+  const pais = (f?.pais || "Brasil").toLowerCase();
+  const flagEmoji = pais.includes("brasil") || pais.includes("brazil") ? "🇧🇷"
+    : pais.includes("argentina") ? "🇦🇷"
+    : pais.includes("portugal") ? "🇵🇹"
+    : pais.includes("alemanha") ? "🇩🇪"
+    : pais.includes("espanha") ? "🇪🇸"
+    : pais.includes("fran") ? "🇫🇷"
+    : pais.includes("italia") ? "🇮🇹"
+    : "🌎";
+  const countryCode = pais.includes("brasil") || pais.includes("brazil") ? "BRA"
+    : pais.includes("argentina") ? "ARG"
+    : pais.includes("portugal") ? "POR"
+    : pais.includes("alemanha") ? "GER"
+    : pais.includes("espanha") ? "ESP"
+    : pais.includes("fran") ? "FRA"
+    : pais.includes("italia") ? "ITA"
+    : "BRA";
+  const alturaFormatada = f?.altura
+    ? (() => {
+        const cm = parseFloat(f.altura);
+        if (isNaN(cm)) return f.altura;
+        // Se valor > 10, assume que está em cm e converte para metros
+        return cm > 10
+          ? (cm / 100).toFixed(2).replace(".", ",") + " m"
+          : cm.toFixed(2).replace(".", ",") + " m";
+      })()
+    : null;
   const stats = [
     f?.dataNascimento,
-    f?.altura ? `${f.altura}m` : null,
+    alturaFormatada,
     f?.peso ? `${f.peso} kg` : null,
   ].filter(Boolean).join(" | ");
 
@@ -128,8 +160,7 @@ function FutebolCard({
       }}
     >
       {/* Outer gold frame */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           inset: 0,
           borderRadius: 16,
@@ -137,12 +168,11 @@ function FutebolCard({
           boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1), 0 0 30px rgba(212,175,55,0.15)",
           zIndex: 10,
           pointerEvents: "none",
-        }}
+        }, overrides["outer-frame"])}
       />
 
       {/* Inner gold frame */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           top: 10,
           left: 10,
@@ -152,16 +182,18 @@ function FutebolCard({
           border: "1.5px solid rgba(212,175,55,0.5)",
           zIndex: 10,
           pointerEvents: "none",
-        }}
+        }, overrides["inner-frame"])}
       />
 
       {/* Corner ornaments */}
-      <CornerOrnament position="top-left" />
-      <CornerOrnament position="top-right" />
-      <CornerOrnament position="bottom-left" />
-      <CornerOrnament position="bottom-right" />
+      {overrides["corners"]?.visible !== false && <>
+        <CornerOrnament position="top-left" />
+        <CornerOrnament position="top-right" />
+        <CornerOrnament position="bottom-left" />
+        <CornerOrnament position="bottom-right" />
+      </>}
 
-      {/* Full background player image — fills entire card */}
+      {/* Full background player image */}
       <img
         src={photoUrl}
         alt=""
@@ -177,123 +209,203 @@ function FutebolCard({
         }}
       />
 
-      {/* Bottom nameplate panel */}
-      <div
-        style={{
+      {/* ── TOP LEFT: "2026" badge ── */}
+      <div style={applyOverride({
+          position: "absolute",
+          top: 16,
+          left: 16,
+          zIndex: 20,
+          background: "transparent",
+          borderRadius: 8,
+          border: "2px solid #D4AF37",
+          padding: "4px 10px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.6)",
+        }, overrides["badge-2026"])}>
+        <span style={{
+          color: "#FFFFFF",
+          fontWeight: 900,
+          fontSize: 14,
+          letterSpacing: 1.5,
+          fontFamily: "system-ui, Arial, sans-serif",
+        }}>2026</span>
+      </div>
+
+      {/* ── TOP RIGHT: premium vertical elements ── */}
+
+      {/* Taça — imagem da pasta public */}
+      <div style={applyOverride({
+          position: "absolute",
+          top: 14,
+          right: 14,
+          zIndex: 20,
+          width: 34,
+          display: "flex",
+          justifyContent: "center",
+        }, overrides["trophy-icon"])}>
+        <img
+          src="/logo_taca.png"
+          alt="Copa 2026"
+          style={{
+            width: 56,
+            height: 56,
+            objectFit: "contain",
+            filter: "drop-shadow(0 3px 10px rgba(0,0,0,0.8))",
+            marginLeft: -2,
+          }}
+        />
+      </div>
+
+      {/* Bandeira Brasil SVG — círculo */}
+      <div style={applyOverride({
+          position: "absolute",
+          top: 108,
+          right: 14,
+          zIndex: 20,
+          width: 34,
+          height: 34,
+          borderRadius: "50%",
+          overflow: "hidden",
+          boxShadow: "0 3px 10px rgba(0,0,0,0.6)",
+          border: "3px solid rgba(255,255,255,0.7)",
+        }, overrides["country-flag"])}>
+        <svg viewBox="3 3 36 36" width="34" height="34" preserveAspectRatio="xMidYMid meet">
+          {/* Green background */}
+          <circle cx="19" cy="19" r="19" fill="#009C3B"/>
+          {/* Yellow diamond */}
+          <polygon points="19,5 34,19 19,33 4,19" fill="#FFDF00"/>
+          {/* Blue circle */}
+          <circle cx="19" cy="19" r="8" fill="#002776"/>
+          {/* White arc */}
+          <path d="M12 21 a8 8 0 0 0 14 0" stroke="white" strokeWidth="1.2" fill="none"/>
+          {/* Stars (simplified) */}
+          <circle cx="19" cy="17" r="1" fill="white"/>
+          <circle cx="15" cy="20" r="0.7" fill="white"/>
+          <circle cx="23" cy="20" r="0.7" fill="white"/>
+        </svg>
+      </div>
+
+      {/* BRA — letras grandes brancas */}
+      <div style={applyOverride({
+          position: "absolute",
+          top: 198,
+          right: 14,
+          zIndex: 20,
+          width: 34,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 2,
+        }, overrides["country-code"])}>
+        {countryCode.split("").map((letter, i) => (
+          <span key={i} style={{
+            color: "white",
+            fontSize: 22,
+            fontWeight: 900,
+            lineHeight: 1.1,
+            fontFamily: "system-ui, Arial, sans-serif",
+            textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+          }}>{letter}</span>
+        ))}
+      </div>
+
+      {/* ── BOTTOM: nameplate panel ── */}
+      <div style={applyOverride({
           position: "absolute",
           bottom: "3%",
-          left: "8%",
-          right: "8%",
+          left: "6%",
+          right: "6%",
           zIndex: 20,
-        }}
-      >
-        {/* Nameplate plate */}
-        <div
-          style={{
-            background: "linear-gradient(180deg, #0F172A 0%, #0B1120 100%)",
-            borderRadius: 10,
-            border: "2px solid #D4AF37",
-            borderTop: "2.5px solid #D4AF37",
-            padding: "8px 12px 6px",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
-          }}
-        >
-          {/* Name */}
-          <p
-            style={{
-              color: "white",
-              fontWeight: 800,
-              fontSize: "clamp(12px, 4vw, 16px)",
-              margin: "0 0 4px",
-              textTransform: "uppercase",
-              letterSpacing: 1.5,
-              fontFamily: "system-ui, -apple-system, Segoe UI, Arial, sans-serif",
-              textAlign: "center",
-              textShadow: "0 2px 6px rgba(0,0,0,0.8)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {nome}
-          </p>
+        }, overrides["nameplate"])}>
+        {/* 3-column layout: [Crest] | [Name + Stats + Team] | [Star] */}
+        <div style={{
+          background: "linear-gradient(180deg, #0F172A 0%, #0B1120 100%)",
+          borderRadius: 12,
+          border: "2px solid #D4AF37",
+          padding: "8px 8px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}>
 
-          {/* Gold separator */}
-          <div
-            style={{
+          {/* LEFT: Club crest — spans full height */}
+          {crestUri ? (
+            <img
+              src={crestUri}
+              alt={f?.time || ""}
+              style={applyOverride({
+                width: 36,
+                height: 36,
+                objectFit: "contain",
+                filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.7))",
+                flexShrink: 0,
+              }, overrides["club-crest"])}
+            />
+          ) : (
+            <div style={applyOverride({ width: 36, height: 36, flexShrink: 0 }, overrides["club-crest"])} />
+          )}
+
+          {/* CENTER: Name + Stats + Team name */}
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <p style={applyOverride({
+                color: "white",
+                fontWeight: 900,
+                fontSize: "clamp(10px, 3.5vw, 15px)",
+                margin: "0 0 3px",
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+                fontFamily: "system-ui, -apple-system, Segoe UI, Arial, sans-serif",
+                textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }, overrides["player-name"])}>
+              {nome}
+            </p>
+
+            {stats && (
+              <p style={applyOverride({
+                  color: "rgba(255,255,255,0.7)",
+                  fontSize: 9,
+                  margin: "0 0 4px",
+                  fontWeight: 500,
+                  letterSpacing: 0.4,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }, overrides["stats-text"])}>
+                {stats}
+              </p>
+            )}
+
+            <div style={{ height: 1, background: "rgba(212,175,55,0.3)", margin: "0 0 4px" }} />
+
+            <span style={applyOverride({
+                color: "#D4AF37",
+                fontWeight: 800,
+                fontSize: 11,
+                letterSpacing: 1.5,
+                textTransform: "uppercase",
+                textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+              }, overrides["team-name"])}>
+              {f?.time || ""}
+            </span>
+          </div>
+
+          {/* RIGHT: Star — spans full height */}
+          <div style={applyOverride({
+              width: 32,
+              height: 32,
+              flexShrink: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 6,
-              margin: "0 0 4px",
-            }}
-          >
-            <div style={{ width: 4, height: 4, background: "#D4AF37", transform: "rotate(45deg)" }} />
-            <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, transparent, #D4AF37, transparent)" }} />
-            <div style={{ width: 4, height: 4, background: "#D4AF37", transform: "rotate(45deg)" }} />
-          </div>
-
-          {/* Stats */}
-          {stats && (
-            <p
-              style={{
-                color: "rgba(255,255,255,0.8)",
-                fontSize: 10,
-                margin: "0 0 6px",
-                fontWeight: 500,
-                textAlign: "center",
-                letterSpacing: 0.5,
-              }}
-            >
-              {stats}
-            </p>
-          )}
-
-          {/* Bottom row: crest | team name | star */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingTop: 4,
-              borderTop: "1px solid rgba(212,175,55,0.2)",
-            }}
-          >
-            {/* Club crest left */}
-            {crestUri ? (
-              <img
-                src={crestUri}
-                alt={f?.time || ""}
-                style={{
-                  width: 28,
-                  height: 28,
-                  objectFit: "contain",
-                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))",
-                }}
-              />
-            ) : (
-              <div style={{ width: 28 }} />
-            )}
-
-            {/* Team name center */}
-            <span
-              style={{
-                color: "#D4AF37",
-                fontWeight: 700,
-                fontSize: 12,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                textShadow: "0 2px 6px rgba(0,0,0,0.6)",
-              }}
-            >
-              {f?.time || ""}
-            </span>
-
-            {/* Gold star right */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#D4AF37">
+            }, overrides["star-icon"])}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="#D4AF37" style={{ filter: "drop-shadow(0 2px 6px rgba(212,175,55,0.5))" }}>
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
+
         </div>
       </div>
     </div>
@@ -352,9 +464,11 @@ function CornerOrnament({ position }: { position: "top-left" | "top-right" | "bo
 function FutebolPaniniCard({
   photoUrl,
   f,
+  overrides = {},
 }: {
   photoUrl: string;
   f: Record<string, string>;
+  overrides?: ThemeOverrides;
 }) {
   const flag = countryFlag(f?.pais || "");
   const formatDate = (dateStr: string) => {
@@ -388,8 +502,7 @@ function FutebolPaniniCard({
       }}
     >
       {/* Large background numbers */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           right: -20,
           top: "10%",
@@ -399,14 +512,12 @@ function FutebolPaniniCard({
           lineHeight: 0.8,
           fontFamily: "Impact, Arial Black, sans-serif",
           zIndex: 1,
-        }}
-      >
+        }, overrides["bg-numbers"])}>
         26
       </div>
 
       {/* Brazilian flag circle */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           top: 20,
           right: 20,
@@ -420,14 +531,12 @@ function FutebolPaniniCard({
           fontSize: 32,
           zIndex: 15,
           boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-        }}
-      >
+        }, overrides["flag-circle"])}>
         {flag}
       </div>
 
       {/* Vertical BRASIL text */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           right: 8,
           top: "50%",
@@ -439,8 +548,7 @@ function FutebolPaniniCard({
           letterSpacing: 3,
           textShadow: "0 2px 4px rgba(0,0,0,0.3)",
           zIndex: 15,
-        }}
-      >
+        }, overrides["brasil-text"])}>
         BRASIL
       </div>
 
@@ -485,8 +593,7 @@ function FutebolPaniniCard({
       </div>
 
       {/* Player info panel */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           bottom: 0,
           left: 0,
@@ -494,20 +601,23 @@ function FutebolPaniniCard({
           background: "#00B4A6",
           padding: "12px 16px 8px",
           zIndex: 15,
-        }}
-      >
+        }, overrides["info-panel"])}>
         {/* Player name */}
         <div
-          style={{
+          style={applyOverride({
             color: "white",
             fontWeight: 900,
-            fontSize: "clamp(16px, 5vw, 22px)",
+            fontSize: "clamp(13px, 4.5vw, 20px)",
             textAlign: "center",
             marginBottom: 6,
             textTransform: "uppercase",
             letterSpacing: 1,
             textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-          }}
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "100%",
+          }, overrides["player-name"])}
         >
           {f?.nome || "JOGADOR"}
         </div>
@@ -548,8 +658,7 @@ function FutebolPaniniCard({
       </div>
 
       {/* Clean border */}
-      <div
-        style={{
+      <div style={applyOverride({
           position: "absolute",
           inset: 0,
           borderRadius: 18,
@@ -557,7 +666,7 @@ function FutebolPaniniCard({
           boxShadow: "0 0 20px rgba(0,0,0,0.1)",
           zIndex: 20,
           pointerEvents: "none",
-        }}
+        }, overrides["border"])}
       />
     </div>
   );
@@ -2704,6 +2813,7 @@ export function CardTemplate({
   generatedImageUrl,
   formData: f = {},
   showWatermark = true,
+  themeOverrides = {},
 }: CardTemplateProps) {
   const effectivePhoto = generatedImageUrl || photoUrl || PLACEHOLDER_IMAGE;
   const [isPreviewObscured, setIsPreviewObscured] = useState(false);
@@ -2746,8 +2856,8 @@ export function CardTemplate({
   }, [shouldShowWatermark]);
 
   const inner = ({
-    "futebol-2026": <FutebolCard photoUrl={effectivePhoto} f={f} />,
-    "futebol-panini": <FutebolPaniniCard photoUrl={effectivePhoto} f={f} />,
+    "futebol-2026": <FutebolCard photoUrl={effectivePhoto} f={f} overrides={(themeOverrides["futebol-2026"] ?? {}) as ThemeOverrides} />,
+    "futebol-panini": <FutebolPaniniCard photoUrl={effectivePhoto} f={f} overrides={(themeOverrides["futebol-panini"] ?? {}) as ThemeOverrides} />,
     "futebol-familia": (
       <div className="w-full">
         <img src={effectivePhoto} alt="Família no futebol" className="w-full h-auto rounded-xl" />
@@ -2763,7 +2873,7 @@ export function CardTemplate({
     "battle-card": <BattleCard photoUrl={effectivePhoto} f={f} />,
     "avatar-poster": <AvatarPosterCard photoUrl={effectivePhoto} f={f} />,
   } as Record<string, React.ReactNode>)[themeId] ?? (
-    <FutebolCard photoUrl={effectivePhoto} f={f} />
+    <FutebolCard photoUrl={effectivePhoto} f={f} overrides={(themeOverrides["futebol-2026"] ?? {}) as ThemeOverrides} />
   );
 
   const isLandscape = themeId === "futebol-familia";
@@ -2811,3 +2921,4 @@ export function CardTemplate({
     </div>
   );
 }
+                                               

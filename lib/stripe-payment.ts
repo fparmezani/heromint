@@ -38,5 +38,6 @@ export async function confirmOrderFromStripeSession(session: Stripe.Checkout.Ses
   }
 
   await updateOrderPaymentStatus(orderId, "paid", paymentId);
-  return orderId;
+  const customerEmail = session.customer_details?.email || session.customer_email || null;
+  return { orderId, customerEmail };
 }

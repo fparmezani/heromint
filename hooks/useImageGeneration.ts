@@ -79,6 +79,12 @@ export function useImageGeneration() {
 
       if (!response.ok) {
         const result = await response.json().catch(() => null);
+        if (response.status === 429 || result?.isRateLimit) {
+          const err = new Error(result?.error || "Limite de previews atingido.");
+          (err as Error & { isRateLimit: boolean; resetAt?: number }).isRateLimit = true;
+          (err as Error & { isRateLimit: boolean; resetAt?: number }).resetAt = result?.resetAt;
+          throw err;
+        }
         const errorCode = result?.errorCode ? ` Codigo: ${result.errorCode}.` : "";
         throw new Error(`${result?.error || "Erro na geracao."}${errorCode}`);
       }

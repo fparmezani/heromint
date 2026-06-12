@@ -381,7 +381,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
           prompt,
           image_input: [uploadedPersonPhoto],
           aspect_ratio: "2:3",
-          resolution: "2K",
+          resolution: "1K",
           output_format: "jpg",
         },
       }
@@ -419,7 +419,7 @@ async function generateWithKontext(input: GenerateImageInput, customPrompt?: str
           prompt,
           image_input: uploadedReferences,
           aspect_ratio: "2:3",
-          resolution: "2K",
+          resolution: "1K",
           output_format: "jpg",
         },
       }

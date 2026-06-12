@@ -55,6 +55,7 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
   );
   const [hasImageAuthorization, setHasImageAuthorization] = useState(Boolean(initialDraft.hasImageAuthorization));
   const [packageType, setPackageType] = useState<PackageType>(initialDraft.packageType ?? "individual");
+  const [rateLimitModal, setRateLimitModal] = useState<{ open: boolean; resetAt?: number }>({ open: false });
   const router = useRouter();
   const { status } = useSession();
   const {
@@ -303,7 +304,12 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
         throw new Error("Erro ao gerar card");
       }
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Erro ao gerar seu card. Tente novamente.");
+      const err = error as Error & { isRateLimit?: boolean; resetAt?: number };
+      if (err.isRateLimit) {
+        setRateLimitModal({ open: true, resetAt: err.resetAt });
+      } else {
+        alert(err.message || "Erro ao gerar seu card. Tente novamente.");
+      }
       resetGeneration();
     }
   };
@@ -549,6 +555,53 @@ export function MultiStepForm({ theme }: MultiStepFormProps) {
               currentStep={generatingStep}
               totalSteps={generatingTotalSteps}
             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Rate limit modal */}
+      <AnimatePresence>
+        {rateLimitModal.open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              className="w-full max-w-sm rounded-2xl bg-[#0F172A] border border-[#FBBF24]/30 p-6 text-center shadow-xl"
+            >
+              <div className="mb-4 text-4xl">&#x23F3;</div>
+              <h2 className="mb-2 text-lg font-bold text-white">Limite diario atingido</h2>
+              <p className="mb-1 text-sm text-[#CBD5E1]">
+                Voce ja gerou o numero maximo de previews gratuitos hoje.
+              </p>
+              {rateLimitModal.resetAt && (
+                <p className="mb-4 text-xs text-[#94A3B8]">
+                  Disponivel novamente as{" "}
+                  <span className="font-semibold text-[#FBBF24]">
+                    {new Date(rateLimitModal.resetAt).toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZone: "America/Sao_Paulo",
+                    })}
+                  </span>
+                  .
+                </p>
+              )}
+              <p className="mb-5 text-sm text-[#CBD5E1]">
+                Se voce ja comprou um card, seu limite e renovado automaticamente.
+              </p>
+              <button
+                onClick={() => setRateLimitModal({ open: false })}
+                className="w-full rounded-xl bg-[#FBBF24] py-2.5 text-sm font-bold text-[#0F172A] hover:bg-[#F59E0B] transition-colors"
+              >
+                Entendido
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
