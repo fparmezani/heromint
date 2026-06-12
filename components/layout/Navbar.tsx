@@ -35,7 +35,9 @@ export function Navbar() {
               priority
             />
             <div className="flex flex-col">
-              <span className="font-impact text-xl tracking-wider text-white leading-none">HEROMINT</span>
+              <span className="font-impact text-xl tracking-wider leading-none">
+                <span className="text-[#FBBF24]">HERO</span><span className="text-white">MINT</span>
+              </span>
               <span className="text-[10px] text-[#94A3B8] leading-none tracking-widest uppercase">Forje sua versão épica.</span>
             </div>
           </Link>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { CardTemplate } from "@/components/preview/CardTemplate";
-import { Wand2, Loader2 } from "lucide-react";
+import { Wand2, Loader2, Download } from "lucide-react";
 
 const THEMES_LIST = [
   { id: "futebol-2026", name: "Futebol 2026" },
@@ -21,36 +21,41 @@ const THEMES_LIST = [
 
 export default function TemplateTestPage() {
   const [selectedTheme, setSelectedTheme] = useState("futebol-2026");
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("/rafa.png");
   const [genero, setGenero] = useState("Masculino");
-  const [generatedImageUrl, setGeneratedImageUrl] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState("/rafa.png");
+  const [originalImageUrl, setOriginalImageUrl] = useState("/rafa.png");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [promptUsed, setPromptUsed] = useState("");
+  const [nomeJogador, setNomeJogador] = useState("FERNANDO PARMEZANI");
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  // Auto-load default Fernando template image
-  useEffect(() => {
-    const defaultImagePath = "/ngenerated-images/FERNANDO-TEMPLATE.jpg";
-    const img = new Image();
-    img.onload = () => {
-      // Convert to data URL via canvas
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        setPhotoUrl(canvas.toDataURL("image/jpeg", 0.9));
-        console.log("✅ Imagem padrão FERNANDO-TEMPLATE carregada");
-      }
-    };
-    img.onerror = () => {
-      console.log("⚠️ Imagem padrão não encontrada, aguardando upload manual");
-    };
-    img.src = defaultImagePath;
-  }, []);
+  const handleDownloadCard = async () => {
+    if (!cardRef.current) return;
+    setIsDownloading(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(cardRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        backgroundColor: null,
+      });
+      const link = document.createElement("a");
+      link.download = `card-${selectedTheme}-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("Erro ao capturar card:", err);
+      alert("Erro ao gerar download. Verifique o console.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const mockFormData = {
-    nome: "FERNANDO PARMEZANI",
+    nome: nomeJogador,
     genero,
     pais: "Brasil",
     posicao: "Atacante",
@@ -101,10 +106,12 @@ export default function TemplateTestPage() {
       const firstImage = data.images?.[0];
       console.log("✓ Data recebida:", { total: data.totalGenerated, isMock: firstImage?.isMock, hasImageUrl: !!firstImage?.imageUrl });
 
-      if (firstImage?.originalImageUrl || firstImage?.imageUrl) {
+      if (firstImage?.imageUrl) {
+        // previewImageUrl = watermarked; originalImageUrl = clean AI output
         setGeneratedImageUrl(firstImage.originalImageUrl || firstImage.imageUrl);
+        setOriginalImageUrl(firstImage.originalImageUrl || firstImage.imageUrl);
         setPromptUsed(firstImage.promptUsed || "");
-        console.log("✅ Imagem e prompt carregados");
+        console.log("✅ Imagem e prompt carregados", { preview: firstImage.imageUrl, original: firstImage.originalImageUrl });
       } else {
         alert("Erro ao gerar: " + (data.error || "desconhecido"));
       }
@@ -183,6 +190,18 @@ export default function TemplateTestPage() {
           </label>
         </div>
 
+        {/* Nome do jogador */}
+        <div className="mb-6 max-w-md">
+          <label className="block text-white font-medium mb-3">Nome do jogador:</label>
+          <input
+            type="text"
+            value={nomeJogador}
+            onChange={(e) => setNomeJogador(e.target.value.toUpperCase())}
+            placeholder="Ex: FERNANDO PARMEZANI"
+            className="w-full px-4 py-3 bg-[#1E293B] border border-[#334155] rounded-lg text-white focus:border-[#FBBF24] focus:outline-none font-bold tracking-wide"
+          />
+        </div>
+
         {/* Gender selector */}
         <div className="mb-8 max-w-md">
           <label className="block text-white font-medium mb-3">Gênero:</label>
@@ -218,21 +237,45 @@ export default function TemplateTestPage() {
           </button>
         </div>
 
-        {/* Card preview with template overlay */}
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-          <div className="w-full max-w-sm aspect-[9/11] bg-black rounded-2xl overflow-hidden shadow-2xl">
-            <CardTemplate
-              themeId={selectedTheme}
-              photoUrl={photoUrl}
-              generatedImageUrl={generatedImageUrl}
-              formData={mockFormData}
-              showWatermark={false}
-            />
+        {/* Card display — Preview + Original side by side */}
+        <div className="flex flex-wrap justify-center gap-12 items-start">
+          {/* Preview — com marca d'água (como o cliente vê) */}
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Preview</span>
+            <p className="text-[10px] text-[#334155] mb-1">Como o cliente vê (com marca d&apos;água)</p>
+            <div style={{ width: 280 }}>
+              <CardTemplate
+                themeId={selectedTheme}
+                photoUrl={photoUrl}
+                generatedImageUrl={generatedImageUrl}
+                formData={mockFormData}
+                showWatermark={true}
+              />
+            </div>
           </div>
 
-          {generatedImageUrl && (
-            <p className="text-green-400 text-sm">✓ Imagem gerada pela IA</p>
-          )}
+          {/* Original — card final sem marca d'água */}
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Original</span>
+            <p className="text-[10px] text-[#334155] mb-1">Card final entregue (sem marca d&apos;água)</p>
+            <div ref={cardRef} style={{ width: 280 }}>
+              <CardTemplate
+                themeId={selectedTheme}
+                photoUrl={photoUrl}
+                generatedImageUrl={generatedImageUrl}
+                formData={mockFormData}
+                showWatermark={false}
+              />
+            </div>
+            <button
+              onClick={handleDownloadCard}
+              disabled={isDownloading}
+              className="flex items-center gap-2 px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors mt-1"
+            >
+              {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {isDownloading ? "Gerando..." : "Download Card"}
+            </button>
+          </div>
         </div>
 
         {/* Info */}

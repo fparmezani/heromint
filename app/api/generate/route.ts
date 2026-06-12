@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
             ...image,
             imageUrl: persistedImage.previewImageUrl,
             previewImageUrl: persistedImage.previewImageUrl,
+            originalImageUrl: persistedImage.imageUrl,
             deliveryToken: createGeneratedImageToken({
               collectibleId,
               imageUrl: persistedImage.imageUrl,

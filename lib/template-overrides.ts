@@ -57,4 +57,27 @@ export const THEME_ELEMENT_DEFS: Record<string, ElementDef[]> = {
   ],
 };
 
-// ─── Helper ─────────────
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+/**
+ * Merges a base CSSProperties with an ElementOverride.
+ * If visible === false, returns display:none.
+ * All other override keys are spread into the base style.
+ */
+export function applyOverride(
+  base: CSSProperties,
+  override: ElementOverride | undefined
+): CSSProperties {
+  if (!override) return base;
+  const { visible, ...rest } = override;
+  if (visible === false) return { ...base, display: "none" };
+  const normalized: CSSProperties = {};
+  for (const [k, v] of Object.entries(rest)) {
+    if (typeof v === "number" && !["opacity", "zIndex", "flex", "order"].includes(k)) {
+      (normalized as Record<string, unknown>)[k] = `${v}px`;
+    } else {
+      (normalized as Record<string, unknown>)[k] = v;
+    }
+  }
+  return { ...base, ...normalized };
+}
