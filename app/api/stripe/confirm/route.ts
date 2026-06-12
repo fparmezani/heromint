@@ -14,13 +14,13 @@ export async function GET(request: Request) {
   try {
     const checkoutSession = await getStripe().checkout.sessions.retrieve(sessionId);
 
-    const orderId = await confirmOrderFromStripeSession(checkoutSession);
+    const confirmation = await confirmOrderFromStripeSession(checkoutSession);
 
-    if (!orderId) {
+    if (!confirmation) {
       return redirectToAccount(appUrl, "pending");
     }
 
-    return NextResponse.redirect(new URL(`/entrega/${orderId}`, appUrl));
+    return NextResponse.redirect(new URL(`/entrega/${confirmation.orderId}`, appUrl));
   } catch (error) {
     console.error("[STRIPE CONFIRM] Error:", error);
     return redirectToAccount(appUrl, "error");

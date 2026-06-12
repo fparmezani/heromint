@@ -23,8 +23,8 @@ export async function POST() {
     let failedSessions = 0;
     for (const checkoutSession of checkoutSessions.data) {
       try {
-        const orderId = await confirmOrderFromStripeSession(checkoutSession);
-        if (orderId) confirmedOrders += 1;
+        const confirmation = await confirmOrderFromStripeSession(checkoutSession);
+        if (confirmation) confirmedOrders += 1;
       } catch (error) {
         failedSessions += 1;
         console.error(
